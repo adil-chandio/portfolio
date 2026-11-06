@@ -3,6 +3,7 @@
 Personal portfolio website of **Adil Chandio** — AI learner • content creator • developer.
 
 - Opens with the MONARCH portfolio film — 37 seconds (sound on, one-tap enter, skippable, once per session, replayable from the nav).
+- After the intro, a one-time **visual rebuild** plays (independent multi-cursor tour of the page; pause/resume, 1×/2×/3×, skip; replayable via REBUILD in the nav). Skip or Escape returns control instantly. Reduced-motion users never see it.
 - Single-page site: hero, about, skills, featured work, contact — original design, no templates.
 - Plain HTML/CSS/JS, no build step. Fonts: Manrope + IBM Plex Mono (OFL, see `assets/fonts/`).
 
@@ -19,6 +20,8 @@ python3 -m http.server 4173
 index.html            single-page site + intro curtains
 assets/styles.css     design system (ink / paper / red)
 assets/main.js        intro flow, reveals, contact form
+assets/rebuild.js     one-time visual rebuild (multi-cursor tour, after intro)
+assets/rebuild.css    visual rebuild styles (overlay, HUD, selection boxes)
 assets/portrait-masked.png   masked portrait cutout (RGBA)
 assets/work-*.jpg     poster frames for work cards
 assets/thumbs/monarch-*.jpg  posters for the MONARCH film cards
