@@ -319,6 +319,29 @@ function typing(on) {
 
 /* ── Voice out (text → speech) ─────────────────────────────── */
 const synth = window.speechSynthesis || null;
+
+/* Warm, human-leaning voice pick. Browser TTS quality depends on the
+   visitor's device — prefer neural/natural Google & Microsoft voices,
+   iOS Samantha-class voices; degrade gracefully to any en/ur voice.   */
+const VOICE_WISH_EN = ['aria', 'emma', 'jenny', 'ava', 'google us english', 'google uk english female',
+  'samantha', 'karen', 'moira', 'tessa', 'zira', 'veena', 'zoe'];
+const VOICE_WISH_UR = ['urdu', 'veena', 'heera', 'swara', 'hindi'];
+function pickVoice(isUrdu, voices) {
+  const v = voices || [];
+  const norm = x => (x.lang || '').replace('_', '-').toLowerCase();
+  const byName = (wish) => v.find(x => wish.some(n => (x.name || '').toLowerCase().includes(n))) || null;
+  if (isUrdu) {
+    const ur = v.find(x => norm(x).startsWith('ur'));
+    if (ur) return ur;
+    const wished = byName(VOICE_WISH_UR); if (wished) return wished;
+    const hi = v.find(x => norm(x).startsWith('hi')); if (hi) return hi;
+  }
+  const enWished = byName(VOICE_WISH_EN); if (enWished) return enWished;
+  const natural = v.find(x => /natural|neural|premium|enhanced/i.test(x.name || '')); if (natural) return natural;
+  const enUS = v.find(x => norm(x).startsWith('en-us')); if (enUS) return enUS;
+  const en = v.find(x => norm(x).startsWith('en')); if (en) return en;
+  return v[0] || null;
+}
 function speakText(html) {
   if (!state.sound || !synth) return;
   try {
@@ -327,13 +350,12 @@ function speakText(html) {
     const text = (tmp.textContent || '').replace(/\s+/g, ' ').trim();
     if (!text) return;
     synth.cancel();
+    const isUrdu = /[\u0600-\u06FF]/.test(text);
     const u = new SpeechSynthesisUtterance(text.slice(0, 420));
-    u.rate = 0.98; u.pitch = 0.94;
-    const lang = /[\u0600-\u06FF]/.test(text) ? 'ur-PK' : 'en-US';
-    const voices = synth.getVoices() || [];
-    const v = voices.find(v => v.lang && v.lang.replace('_', '-').toLowerCase().startsWith(lang.slice(0, 2))) || voices.find(v => /en[-_]/i.test(v.lang)) || null;
+    u.rate = 0.97; u.pitch = 1.05; u.volume = 1;
+    const v = pickVoice(isUrdu, synth.getVoices() || []);
     if (v) u.voice = v;
-    u.lang = v ? v.lang : lang;
+    u.lang = v ? v.lang : (isUrdu ? 'ur-PK' : 'en-US');
     synth.speak(u);
   } catch (_) {}
 }
@@ -453,6 +475,17 @@ function setOpen(open) {
   fab.classList.remove('has-unread');
   if (open) {
     setTimeout(() => $('#mqInput').focus({ preventScroll: true }), 160);
+    if (!state.greeted && !state.sound) {
+      state.greeted = 'muted';
+      const who = state.name ? ` ${escapeHtml(state.name)}` : '';
+      const hint = L('en',
+        `Welcome${who}. 🔇 Voice replies are **muted** right now — tap the speaker icon (top-right) and I'll talk back warm. Meanwhile, ask away.`,
+        `Welcome${who}. 🔇 Abhi voice replies **mute** hain — speaker icon (top-right) daba do, main bol kar jawab dunga. Tab tak type karo.`,
+        `خوش آمدید${who}۔ 🔇 آواز ابھی بند ہے — اوپر دائیں اسپیکر آئیکن دبائیں، میں بولا کر جواب دوں گا۔`);
+      addBubble('bot', hint);
+      renderChips(CHIPS_MAIN);
+      return;
+    }
     if (!state.greeted) {
       state.greeted = true;
       const who = state.name ? ` ${escapeHtml(state.name)}` : '';
