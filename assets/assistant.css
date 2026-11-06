@@ -1,0 +1,112 @@
+/* ══ MONARCH CONCIERGE — Adil's web assistant ═══════════════
+   Same design language as the site: #050507 black, ivory ink,
+   #d21f2b red, IBM Plex Mono + Manrope. Zero dependencies.   */
+
+/* Back-to-top shares the corner — Concierge is the primary citizen now. */
+.fab{bottom:96px}
+
+#mqFab{position:fixed;right:18px;bottom:18px;z-index:58;width:62px;height:62px;border-radius:50%;
+  border:1px solid rgba(210,31,43,.55);background:#0d0d0f;cursor:pointer;display:grid;place-items:center;
+  box-shadow:0 0 0 1px rgba(210,31,43,.18),0 14px 44px -8px rgba(210,31,43,.42),0 10px 34px rgba(0,0,0,.6);
+  transition:transform .3s var(--ease),box-shadow .3s,border-color .3s;padding:0;overflow:hidden}
+#mqFab img{width:100%;height:100%;object-fit:cover;border-radius:50%;filter:contrast(1.05)}
+#mqFab::after{content:'';position:absolute;inset:-1px;border-radius:50%;border:1px solid rgba(255,90,100,.5);
+  animation:mqRing 2.8s ease-out infinite;pointer-events:none}
+@keyframes mqRing{0%{transform:scale(1);opacity:.8}70%{transform:scale(1.45);opacity:0}100%{transform:scale(1.45);opacity:0}}
+#mqFab:hover{transform:translateY(-3px) scale(1.04);border-color:#ff4d57}
+#mqFab:active{transform:scale(.94)}
+.mq-on{position:absolute;right:2px;bottom:2px;width:15px;height:15px;border-radius:50%;background:#37c26e;
+  border:2px solid #050507;z-index:2}
+.mq-badge{position:absolute;top:-2px;right:-2px;min-width:20px;height:20px;padding:0 5px;border-radius:999px;
+  background:var(--red);color:#fff;font:700 10px/20px 'IBM Plex Mono',monospace;text-align:center;z-index:2;display:none}
+#mqFab.has-unread .mq-badge{display:block;animation:mqBadge .5s var(--ease)}
+@keyframes mqBadge{from{transform:scale(.4)}to{transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){#mqFab::after,.mq-on,#mqFab.has-unread .mq-badge{animation:none}}
+
+#mqPanel{position:fixed;right:18px;bottom:96px;z-index:59;width:min(392px,calc(100vw - 24px));
+  height:min(620px,82vh,82dvh);display:flex;flex-direction:column;overflow:hidden;
+  background:rgba(13,13,16,.96);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid #2b2b31;border-radius:20px;
+  box-shadow:0 40px 90px -20px rgba(0,0,0,.75),0 0 0 1px rgba(210,31,43,.08),inset 0 1px 0 rgba(255,255,255,.05);
+  opacity:0;visibility:hidden;transform:translateY(22px) scale(.96);
+  transition:opacity .34s var(--ease),transform .34s var(--ease),visibility .34s}
+#mqPanel.open{opacity:1;visibility:visible;transform:none}
+
+.mq-head{display:flex;align-items:center;gap:11px;padding:13px 14px;
+  border-bottom:1px solid #202024;background:linear-gradient(180deg,rgba(210,31,43,.07),transparent)}
+.mq-head img{width:38px;height:38px;border-radius:10px;border:1px solid #2b2b31}
+.mq-title{font:800 13px/1.15 'Manrope',sans-serif;letter-spacing:.02em;color:#f2eee7}
+.mq-sub{font:400 9px/1.4 'IBM Plex Mono',monospace;letter-spacing:.14em;color:#8f8c85;margin-top:2px}
+.mq-sub em{color:#37c26e;font-style:normal}
+.mq-hbtns{margin-left:auto;display:flex;gap:6px}
+.mq-icobtn{width:32px;height:32px;border-radius:9px;border:1px solid #2b2b31;background:#141419;color:#b9b6b0;
+  cursor:pointer;display:grid;place-items:center;transition:border-color .2s,color .2s,background .2s}
+.mq-icobtn:hover{border-color:var(--red);color:#ff5b64}
+.mq-icobtn[aria-pressed="true"]{color:#ff5560;border-color:rgba(210,31,43,.5)}
+.mq-icobtn svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+.mq-log{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:14px 12px;display:flex;flex-direction:column;gap:10px;
+  scrollbar-width:thin;scrollbar-color:#2e2e33 transparent}
+.mq-log::-webkit-scrollbar{width:6px}
+.mq-log::-webkit-scrollbar-thumb{background:#2e2e33;border-radius:6px}
+
+.mq-row{display:flex;gap:8px;align-items:flex-end;max-width:88%}
+.mq-row.bot{align-self:flex-start}
+.mq-row.user{align-self:flex-end;flex-direction:row-reverse}
+.mq-ava{flex:0 0 auto;width:26px;height:26px;border-radius:8px;border:1px solid #2b2b31;background:#141419;
+  display:grid;place-items:center;overflow:hidden}
+.mq-ava img{width:100%;height:100%;object-fit:cover}
+.mq-bub{font:400 13px/1.55 'Manrope',sans-serif;color:#e9e6de;padding:10px 13px;border-radius:14px 14px 14px 4px;
+  background:#15151a;border:1px solid #232329;white-space:pre-wrap;word-wrap:break-word}
+.mq-row.user .mq-bub{background:linear-gradient(160deg,#d5212d,#a3131f);border-color:rgba(255,120,128,.35);
+  color:#fdf3ef;border-radius:14px 14px 4px 14px}
+.mq-bub a{color:#ff6b74;text-decoration:none;border-bottom:1px solid rgba(255,107,116,.4);transition:color .15s,border-color .15s}
+.mq-bub a:hover{color:#ff8a91;border-color:#ff8a91}
+.mq-bub b{color:#fff}
+.mq-bub .mq-mono{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.06em;color:#ff8a91}
+
+.mq-chips{display:flex;gap:6px;flex-wrap:wrap;padding:2px 12px 10px}
+.mq-chip{font:400 10px/1 'IBM Plex Mono',monospace;letter-spacing:.09em;color:#cfc9bd;background:#141419;
+  border:1px solid #2e2e35;border-radius:999px;padding:8px 11px;cursor:pointer;transition:.18s;white-space:nowrap}
+.mq-chip:hover{border-color:var(--red);color:#ff6b74;transform:translateY(-1px)}
+.mq-chip.hot{border-color:rgba(210,31,43,.55);color:#ff8a91}
+
+.mq-typing{display:flex;gap:4px;align-items:center;padding:11px 14px;background:#15151a;border:1px solid #232329;border-radius:14px 14px 14px 4px;width:max-content}
+.mq-typing i{width:6px;height:6px;border-radius:50%;background:#8f8c85;animation:mqTp 1.15s infinite}
+.mq-typing i:nth-child(2){animation-delay:.18s}
+.mq-typing i:nth-child(3){animation-delay:.36s}
+@keyframes mqTp{0%,60%,100%{transform:translateY(0);opacity:.55}30%{transform:translateY(-5px);opacity:1}}
+@media(prefers-reduced-motion:reduce){.mq-typing i{animation:none}}
+
+.mq-form{display:flex;gap:8px;align-items:center;padding:10px 12px;border-top:1px solid #202024;background:#0e0e11}
+#mqInput{flex:1;min-width:0;background:#141419;border:1px solid #26262d;border-radius:12px;color:#f2eee7;
+  font:400 14px 'Manrope',sans-serif;padding:12px 13px;outline:none;transition:border-color .2s,box-shadow .2s}
+#mqInput::placeholder{color:#6d6a63}
+#mqInput:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(210,31,43,.18)}
+#mqInput.mq-listening{border-color:#ff4d57;box-shadow:0 0 0 3px rgba(255,77,87,.22);animation:mqListen .9s ease-in-out infinite}
+@keyframes mqListen{50%{box-shadow:0 0 0 6px rgba(255,77,87,.12)}}
+@media(prefers-reduced-motion:reduce){#mqInput.mq-listening{animation:none}}
+.mq-send,.mq-mic{flex:0 0 auto;width:42px;height:42px;border-radius:12px;border:1px solid #2b2b31;background:#141419;color:#cfc9bd;cursor:pointer;display:grid;place-items:center;transition:.2s}
+.mq-send{background:var(--red);border-color:#e3424b;color:#fff}
+.mq-send:hover{background:#ee3541;transform:translateY(-1px)}
+.mq-mic[aria-pressed="true"]{border-color:#ff4d57;color:#ff6b74;background:#1c1013;box-shadow:0 0 0 3px rgba(255,77,87,.18)}
+.mq-send svg,.mq-mic svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+
+.mq-note{font:400 8.5px/1.5 'IBM Plex Mono',monospace;letter-spacing:.08em;color:#55524c;text-align:center;padding:0 10px 8px;background:#0e0e11}
+.mq-note a{color:#8f8c85}
+
+@media(max-width:600px){
+  .fab{bottom:112px}
+  #mqPanel{left:0;right:0;bottom:0;width:100vw;height:84dvh;border-radius:18px 18px 0 0;border-bottom:0}
+  #mqFab{width:58px;height:58px;bottom:16px;right:16px}
+}
+
+/* CTA button inside bubbles (email Adil etc.) */
+.mq-cta{display:inline-flex;align-items:center;gap:8px;margin-top:8px;background:var(--red);color:#fff;
+  border-radius:10px;padding:10px 14px;font:700 10.5px/1 'IBM Plex Mono',monospace;letter-spacing:.13em;
+  text-decoration:none!important;border:1px solid #e3424b!important;transition:.18s}
+.mq-cta:hover{background:#ee3541;transform:translateY(-1px)}
+.mq-list{margin:8px 0 2px;padding:0;list-style:none}
+.mq-list li{margin:6px 0}
+.mq-list a{color:#ff8a91;text-decoration:none;border-bottom:1px solid rgba(255,138,145,.35)}
+.mq-list a:hover{border-color:#ff8a91}
