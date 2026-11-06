@@ -3,6 +3,7 @@
    Roman Urdu and Urdu script. Voice in via Web Speech API.
    Personality lineage: Monarch-Assistant (WhatsApp) — warm,
    brief, ruthless with vagueness, routes to the human.      */
+(function () {
 'use strict';
 
 /* Optional remote brain (default OFF). If Adil later exposes his
@@ -508,3 +509,4 @@ document.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => { if (!state.open && !ssGet('mq:nudged')) { fab.classList.add('has-unread'); } }, 8000);
   fab.addEventListener('click', () => ssSet('mq:nudged'), { once: true });
 });
+})();
