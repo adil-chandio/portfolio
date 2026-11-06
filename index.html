@@ -19,6 +19,7 @@
 <link rel="preload" href="assets/fonts/Manrope-800.ttf" as="font" type="font/ttf" crossorigin>
 <link rel="stylesheet" href="assets/styles.css?v=39">
 <link rel="stylesheet" href="assets/rebuild.css?v=5">
+<link rel="stylesheet" href="assets/assistant.css?v=1">
 </head>
 <body class="locked">
 
@@ -333,8 +334,43 @@
   <video id="plVideo" controls playsinline preload="metadata"></video>
   <div id="plFrame"></div>
 </div>
+<button id="mqFab" aria-label="Ask the MONARCH Concierge — voice or text" aria-expanded="false" aria-controls="mqPanel">
+  <img src="assets/logo-192.png?v=14" alt="" width="62" height="62">
+  <span class="mq-on" aria-hidden="true"></span>
+  <span class="mq-badge" aria-hidden="true">1</span>
+</button>
+<div id="mqPanel" role="dialog" aria-modal="false" aria-label="MONARCH Concierge — Adil's assistant" aria-hidden="true">
+  <div class="mq-head">
+    <img src="assets/logo-192.png?v=14" alt="" width="38" height="38">
+    <div>
+      <div class="mq-title">MONARCH CONCIERGE</div>
+      <div class="mq-sub"><em>&#9679;</em> ALWAYS AWAKE &middot; ADIL&rsquo;S ASSISTANT</div>
+    </div>
+    <div class="mq-hbtns">
+      <button class="mq-icobtn" id="mqSound" aria-pressed="true" aria-label="Toggle voice replies" title="Voice replies">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l6 4V5L8 9H4z"/><path d="M17.5 8.5a5 5 0 0 1 0 7"/></svg>
+      </button>
+      <button class="mq-icobtn" id="mqClose" aria-label="Close concierge">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="mq-log" id="mqLog" aria-live="polite"></div>
+  <div class="mq-chips" id="mqChips"></div>
+  <form class="mq-form" id="mqForm" autocomplete="off">
+    <button type="button" class="mq-mic" id="mqMic" aria-pressed="false" aria-label="Speak your question" title="Voice input">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a3.5 3.5 0 0 1 3.5 3.5v6a3.5 3.5 0 0 1-7 0v-6A3.5 3.5 0 0 1 12 2z"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0"/><path d="M12 18v4"/></svg>
+    </button>
+    <input id="mqInput" name="q" type="text" autocomplete="off" placeholder="Type anything… or tap the mic" aria-label="Your question">
+    <button type="submit" class="mq-send" aria-label="Send">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+    </button>
+  </form>
+  <div class="mq-note">RULE-BASED &middot; NOTHING LEAVES YOUR BROWSER &middot; <a href="mailto:workadilchandio@gmail.com">workadilchandio@gmail.com</a></div>
+</div>
 <div id="toast" class="toast mono" role="status"></div>
 <script src="assets/rebuild.js?v=4" defer></script>
 <script src="assets/main.js?v=39" defer></script>
+<script src="assets/assistant.js?v=1" defer></script>
 </body>
 </html>
