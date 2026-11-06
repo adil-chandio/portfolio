@@ -3,7 +3,7 @@
 Personal portfolio website of **Adil Chandio** — AI learner • content creator • developer.
 
 - Opens with the MONARCH portfolio film — 37 seconds (sound on, one-tap enter, skippable, once per session, replayable from the nav).
-- After the intro, a one-time **visual rebuild** plays (independent multi-cursor tour of the page; pause/resume, 1×/2×/3×, skip; replayable via REBUILD in the nav). It starts only after the page has painted — above-the-fold content stays visible while cursors box it in place; below-the-fold elements reveal as their cursors reach them on scroll. Skip or Escape returns control instantly. Reduced-motion users never see it.
+- After the intro, a one-time **visual rebuild** plays (independent multi-cursor tour; pause/resume, 1×/2×/3×, skip; replayable via REBUILD in the nav). The page opens into a black void — everything is hidden, even above the fold — and the cursors build the whole site from nothing: selection boxes draw around each element, a scan line sweeps it visible, sparks trail the working cursors, and original synthesized UI sounds tick the build (toggleable, `SESSION` key `monarch_rebuild_sound`). Skip or Escape returns control instantly. Reduced-motion users never see it.
 - Single-page site: hero, about, skills, featured work, contact — original design, no templates.
 - Plain HTML/CSS/JS, no build step. Fonts: Manrope + IBM Plex Mono (OFL, see `assets/fonts/`).
 

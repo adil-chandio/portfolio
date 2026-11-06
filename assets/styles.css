@@ -39,7 +39,7 @@ body.cur-hot #cursor{background:var(--paper)}
 /* ── Curtains (gate + splash) ─────────────────────────────── */
 .curtain{position:fixed;inset:0;z-index:60;background:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center;transition:opacity .8s ease,visibility .8s}
 .curtain.done{opacity:0;visibility:hidden;pointer-events:none}
-.gate-ring{position:absolute;width:min(74vmin,560px);aspect-ratio:1;border:1px solid #1e1e22;border-radius:50%;animation:spin 26s linear infinite}
+.gate-ring{position:absolute;width:min(74vmin,560px);aspect-ratio:1;border:1px solid #1e1e22;border-radius:50%;animation:spin 26s linear infinite;pointer-events:none}
 .gate-ring::before{content:'';position:absolute;top:-4px;left:50%;width:7px;height:7px;border-radius:50%;background:var(--red);box-shadow:0 0 18px 4px rgba(210,31,43,.5)}
 @keyframes spin{to{transform:rotate(360deg)}}
 .gate-face{width:clamp(120px,26vw,190px);filter:grayscale(.15) contrast(1.05);border-radius:6px;box-shadow:0 0 0 1px #26262a,0 30px 80px -20px rgba(210,31,43,.45);animation:float 5.5s ease-in-out infinite}
