@@ -206,8 +206,9 @@ $('#contactForm').addEventListener('submit', (ev) => {
 const pl = $('#player'), plV = $('#plVideo'), plF = $('#plFrame'), plT = $('#plTitle'), plC = $('#plClose');
 function plShow() { $$('.trailer').forEach((v) => { v.pause(); v.classList.remove('playing'); }); pl.classList.add('on'); pl.setAttribute('aria-hidden', 'false'); document.body.classList.add('locked'); }
 function plHide() { pl.classList.remove('on'); pl.setAttribute('aria-hidden', 'true'); document.body.classList.remove('locked'); }
-function plOpen(src, title) {
+function plOpen(src, title, wide) {
   plF.innerHTML = ''; plV.style.display = '';
+  plV.dataset.wide = wide ? '1' : '0';
   plV.src = src; plT.textContent = (title || 'FILM').toUpperCase(); plShow();
   setTimeout(() => { plV.play().catch(() => {}); }, 80);
 }
@@ -219,7 +220,7 @@ function plOpenYt(id, title, wide) {
 function plClose() { plV.pause(); plV.removeAttribute('src'); plV.load(); plF.innerHTML = ''; plHide(); }
 $$('.work-card[data-src], .work-card[data-yt]').forEach((c) => c.addEventListener('click', () => {
   if (c.dataset.yt) plOpenYt(c.dataset.yt, c.dataset.title, c.dataset.wide === '1');
-  else plOpen(c.dataset.src, c.dataset.title);
+  else plOpen(c.dataset.src, c.dataset.title, c.dataset.wide === '1');
 }));
 plC.addEventListener('click', plClose);
 pl.addEventListener('click', (e) => { if (e.target === pl) plClose(); });
