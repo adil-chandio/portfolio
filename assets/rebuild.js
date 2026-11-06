@@ -6,7 +6,7 @@
   const palette = ['#6cbce6','#df7585','#b18ce7','#78c8aa','#e0a96c','#899fe8','#e887b8','#8ccdd2'];
   const names = ['NOVA','ECHO','ATLAS','PIXEL','ORBIT','FLUX','EMBER','NORTH','SORA','VEX','LUMA','NIM','MICA','DUNE','INK','KITE','BOLT','LYRA','VALE','RIO','FINN','REMI','SAGE','SOL'];
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const TRAVEL = 500, DRAW = 650, REVEAL = 700, HOLD = 180;
+  const TRAVEL = 380, DRAW = 540, REVEAL = 640, HOLD = 160;
   let run = null, autoScheduled = false;
   const seen = () => { try { return sessionStorage.getItem(SEEN) === '1'; } catch (_) { return true; } };
   const markSeen = () => { try { sessionStorage.setItem(SEEN, '1'); } catch (_) {} };
@@ -16,7 +16,7 @@
   const make = (tag, cls) => { const el = document.createElement(tag); if (cls) el.className = cls; return el; };
   const visibleX = rect => rect.right > 0 && rect.left < innerWidth;
   function clearTarget(t) {
-    t.el.classList.remove('build-wait', 'build-drawing');
+    t.el.classList.remove('build-wait', 'build-drawing', 'build-touched');
     t.el.style.removeProperty('--build-reveal');
     delete t.el.dataset.buildPhase;
     delete t.el.dataset.buildActor;
@@ -80,7 +80,10 @@
       document.documentElement.style.scrollBehavior = scrollBehavior;
       return;
     }
-    targets.forEach(t => { t.el.classList.add('build-wait'); t.el.dataset.buildPhase = 'waiting'; });
+    // Above the fold: leave visible at tour start so the page never blanks out —
+    // the cursor boxes those elements in place. Below the fold: hidden until a
+    // cursor reaches them (they are not visible yet anyway).
+    targets.forEach(t => { t.persist = t.el.getBoundingClientRect().top < innerHeight; if (!t.persist) t.el.classList.add('build-wait'); t.el.dataset.buildPhase = 'waiting'; });
     const overlay = make('div','build-overlay'); overlay.setAttribute('aria-hidden','true');
     const guide = make('div','build-guide'); overlay.append(guide);
     const hud = make('div','build-hud');
@@ -115,6 +118,11 @@
       const box=make('div','build-box'); box.style.setProperty('--agent',actor.color); box.dataset.actor=actor.name;
       const label=make('i'); label.textContent=t.el.matches('img,.hero-car,.work-card,.phone') ? 'MEDIA' : t.el.matches('h1,h2,h3,p,li') ? 'TEXT' : 'FRAME';
       box.append(label); r.overlay.append(box);
+      // Size the selection once; the per-frame draw then animates transform: scale
+      // (compositor-only) instead of width/height (layout-thrashing).
+      const rect0=t.el.getBoundingClientRect();
+      t.boxW=rect0.width; t.boxH=rect0.height;
+      box.style.width=t.boxW+'px'; box.style.height=t.boxH+'px';
       t.state='active'; t.box=box; t.start=r.elapsed; t.actor=actor; t.originX=actor.x; t.originY=actor.y;
       t.el.dataset.buildPhase='approach'; t.el.dataset.buildActor=actor.name; actor.target=t;
     }
@@ -158,14 +166,14 @@
         a.node.classList.toggle('is-busy', !!t);
         if (t) {
           const rect=t.el.getBoundingClientRect(), dt=r.elapsed-t.start;
-          // The selection is a viewport overlay; the real element supplies the
-          // same geometry on every frame, including during any page layout changes.
+          // The selection overlay is sized at assignment time; only the per-frame
+          // transform changes, unless a real layout shift happened.
           const x=rect.left, y=rect.top, w=rect.width, h=rect.height;
           const travel=ease(clamp(dt/TRAVEL,0,1));
           const draw=ease(clamp((dt-TRAVEL)/DRAW,0,1));
           const reveal=ease(clamp((dt-TRAVEL-DRAW)/REVEAL,0,1));
-          t.box.style.transform='translate3d('+x+'px,'+y+'px,0)';
-          t.box.style.width=Math.max(1,w*draw)+'px'; t.box.style.height=Math.max(1,h*draw)+'px';
+          t.box.style.transform='translate3d('+x.toFixed(1)+'px,'+y.toFixed(1)+'px,0) scale('+Math.max(0.02,draw).toFixed(4)+')';
+          if (Math.abs(w-(t.boxW||0))>3 || Math.abs(h-(t.boxH||0))>3) { t.boxW=w; t.boxH=h; t.box.style.width=w+'px'; t.box.style.height=h+'px'; }
           t.box.style.opacity=dt<TRAVEL ? '0' : '1';
           if (dt<TRAVEL) {
             a.x=t.originX+(x-t.originX)*travel; a.y=t.originY+(y-t.originY)*travel;
@@ -174,10 +182,12 @@
             a.x=x+w*draw; a.y=y+h*draw;
           } else {
             if (t.state==='active') {
-              t.state='revealing'; t.el.classList.remove('build-wait'); t.el.classList.add('build-drawing');
+              t.state='revealing';
+              if (t.persist) t.el.classList.add('build-touched');
+              else { t.el.classList.remove('build-wait'); t.el.classList.add('build-drawing'); }
               t.el.dataset.buildPhase='reveal';
             }
-            t.el.style.setProperty('--build-reveal', (100*reveal).toFixed(2)+'%');
+            if (!t.persist) t.el.style.setProperty('--build-reveal', (100*reveal).toFixed(2)+'%');
             a.x=x+w*reveal; a.y=y+Math.min(h*.55, 22);
             if (dt>=TRAVEL+DRAW+REVEAL+HOLD) {
               markRevealed(t.el); clearTarget(t); t.state='done'; t.actor=null; a.target=null;
@@ -220,7 +230,16 @@
       if (reduced.matches) { const el=$('#toast');el.textContent='Visual rebuild is disabled by your reduced motion preference.';el.classList.add('show');setTimeout(()=>el.classList.remove('show'),3200);return; }
       start(true);
     });
-    window.addEventListener('monarch:intro-done', () => { if (!autoScheduled) { autoScheduled=true; setTimeout(() => start(false),600); } });
+    window.addEventListener('monarch:intro-done', () => {
+      if (autoScheduled) return; autoScheduled = true;
+      let fired = false;
+      const go = () => { if (fired) return; fired = true; setTimeout(() => start(false), 650); };
+      if (document.readyState === 'complete') go();
+      else {
+        window.addEventListener('load', go, { once: true });
+        setTimeout(go, 2200); // fallback — never wait on slow assets forever
+      }
+    });
   }
   init();
 })();
