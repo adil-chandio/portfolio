@@ -819,3 +819,11 @@ body{overscroll-behavior-y:auto}
   .nav{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(10,10,11,.94)}
   .work-card .play,.skip-btn{backdrop-filter:none;-webkit-backdrop-filter:none}
 }
+
+/* Showcase: show the full frame for landscape and vertical films. */
+.work-card.showcase-video figure img { inset: 0; width: 100%; height: 100%; object-fit: contain; transform: none; }
+.work-card.showcase-video:hover figure img { transform: none; }
+.work-card.showcase-video .trailer { object-fit: contain; }
+
+.work-swipe{display:none}
+@media(max-width:860px){.work-swipe{display:block;margin:12px var(--pad) 0;color:var(--mut-d);font-size:10px;letter-spacing:.12em}}
