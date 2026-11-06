@@ -17,6 +17,37 @@ body.monarch-build-active .curve-wrap,
 body.monarch-build-active .phone,
 body.monarch-build-active .rc-stack { background:transparent !important }
 
+/* The site's text tokens are designed for the light paper background
+   (--ink:#0a0a0b inherited from body). Against the void they are invisible,
+   so for the duration of the build the ink/mut tokens are flipped to their
+   on-dark counterparts. Cleanup removes the class and everything flips back. */
+body.monarch-build-active { --ink:#ece9e2; --mut:#b8b4aa; --mut-d:#8f8c85 }
+/* --ink is also used as a surface by a few elements; those must NOT flip light. */
+body.monarch-build-active .curtain,
+body.monarch-build-active #topFab { background:#050506 !important }
+body.monarch-build-active .letter-card,
+body.monarch-build-active .toast { background:#17171a !important }
+/* --ink-flip would make these unreadable on their unchanged light surfaces. */
+body.monarch-build-active .hire-btn { color:#17171a !important }
+body.monarch-build-active .ghost-btn:hover { background:#ece9e2 !important; color:#17171a !important }
+body.monarch-build-active .lt-paper { color:#17171a !important }
+/* Hardcoded light-theme inks that never touch the tokens — same treatment. */
+body.monarch-build-active .about-body,
+body.monarch-build-active .timeline p { color:#b8b4aa !important }
+body.monarch-build-active .marquee.giant span { color:#2b2b31 !important }
+body.monarch-build-active .lt-hint { color:#8f8c85 !important }
+body.monarch-build-active .wm-name { color:#ece9e2 !important; -webkit-text-fill-color:#ece9e2 !important }
+/* Dim grays that were designed for the ink sections (#0a0a0b) but only just
+   clear contrast on pure black — lift them so the void is fully legible. */
+body.monarch-build-active .skill-grid p,
+body.monarch-build-active .rc-slide figcaption,
+body.monarch-build-active .rc-meta,
+body.monarch-build-active .rcm-card figcaption,
+body.monarch-build-active .section.dark .stats li { color:#a8a59e !important }
+body.monarch-build-active .curve-lbl,
+body.monarch-build-active .proof-src,
+body.monarch-build-active .rc-head { color:#a3a09a !important }
+
 body.monarch-build-active .build-wait { visibility:hidden !important }
 body.monarch-build-active main * { animation-play-state:paused !important }
 body.monarch-build-active [data-rv],body.monarch-build-active [data-rv] .ch,body.monarch-build-active [data-rv] .wd { opacity:1!important;transform:none!important;clip-path:none!important;transition:none!important }
