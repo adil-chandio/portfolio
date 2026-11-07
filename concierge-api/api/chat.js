@@ -1,4 +1,4 @@
-/* ══ MONARCH Concierge — live brain (Gemini) ══════════════════════════
+/* ══ MONARCH Concierge — live brain (Groq primary → Gemini fallback) ══
    Customer-support-grade proxy for Adil Chandio's MONARCH studio.
    Keys live ONLY in Vercel env (GROQ_API_KEY primary, GEMINI_API_KEY
    fallback) — never in this file, never in the repo, never in the browser.
