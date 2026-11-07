@@ -25,6 +25,19 @@ speed = float(os.environ.get('SPEED', '1.0'))
 os.makedirs(outdir, exist_ok=True)
 
 manifest = json.load(open(manifest_path, encoding='utf-8'))
+import hashlib
+source_md5 = hashlib.md5(json.dumps(
+    [{k: i.get(k) for k in ('id', 'lang', 'text', 'exclude', 'reason')} for i in manifest['items']],
+    sort_keys=True).encode()).hexdigest()
+prev_path = os.path.join(outdir, 'manifest.json')
+if os.path.exists(prev_path):
+    try:
+        prev = json.load(open(prev_path, encoding='utf-8'))
+        if prev.get('source_md5') == source_md5 and prev.get('engine') == 'kokoro':
+            print(f"clips up to date (source {source_md5[:8]}) — skipping, zero quota spent")
+            sys.exit(0)
+    except Exception:
+        pass
 print(f"clips to generate: {manifest['count']}  voice={voice} speed={speed}")
 
 kokoro = Kokoro(
@@ -64,7 +77,7 @@ for item in manifest['items']:
         errors.append({**item, 'error': str(e)})
         print(f"FAIL  {item['lang']}-{item['id']}: {e}")
 
-json.dump({'voice': voice, 'clips': sorted(wrote)},
+json.dump({'engine': 'kokoro', 'voice': voice, 'source_md5': source_md5, 'clips': sorted(wrote)},
           open(os.path.join(outdir, 'manifest.json'), 'w', encoding='utf-8'), indent=2)
 print(f"\ndone: {len(wrote)} clips written, {len(errors)} failed")
 if errors:

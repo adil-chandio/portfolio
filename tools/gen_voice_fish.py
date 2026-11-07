@@ -44,20 +44,42 @@ if '--list-voices' in sys.argv:
             print(f'  id={item.id}  title={item.title!r}  langs={langs}')
     sys.exit(0)
 
+import json as _json
+CONFIG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'voice-config.json')
+CFG = {}
+try:
+    CFG = _json.load(open(CONFIG_PATH, encoding='utf-8')) or {}
+except Exception:
+    pass
 manifest_path, outdir = sys.argv[1], sys.argv[2]
-model = os.environ.get('FISH_MODEL') or 's2.1-pro'
-reference_id = os.environ.get('FISH_REFERENCE_ID') or None
-speed = float(os.environ.get('VOICE_SPEED') or '1.0')
+model = os.environ.get('FISH_MODEL') or CFG.get('fish_model') or 's2.1-pro-free'
+reference_id = os.environ.get('FISH_REFERENCE_ID') or CFG.get('fish_reference_id') or None
+speed = float(os.environ.get('VOICE_SPEED') or CFG.get('fish_speed') or '1.0')
 os.makedirs(outdir, exist_ok=True)
 
 manifest = json.load(open(manifest_path, encoding='utf-8'))
+import hashlib
+source_md5 = hashlib.md5(json.dumps(
+    [{k: i.get(k) for k in ('id', 'lang', 'text', 'exclude', 'reason')} for i in manifest['items']],
+    sort_keys=True).encode()).hexdigest()
+prev_path = os.path.join(outdir, 'manifest.json')
+if os.path.exists(prev_path):
+    try:
+        prev = json.load(open(prev_path, encoding='utf-8'))
+        if (prev.get('source_md5') == source_md5 and prev.get('engine') == 'fish'
+                and prev.get('voice') == (reference_id or 'default') and prev.get('model')
+                and os.path.exists(os.path.join(outdir, 'en-greeting.mp3'))):
+            print(f"voice clips up to date (source {source_md5[:8]}, voice {prev.get('voice')}) — skipping generation, zero quota spent")
+            sys.exit(0)
+    except Exception:
+        pass
 print(f"fish plan: {manifest['count']} clips  voice={reference_id or 'default'} speed={speed}")
 
 c = client()
 
 # Probe models in order — s2.1-pro-free first (free tier), then paid fallbacks.
 # No clip files are touched until a model actually works.
-candidates = [os.environ.get('FISH_MODEL') or 's2.1-pro-free', 's2.1-pro', 's1']
+candidates = [model, 's2.1-pro-free', 's2.1-pro', 's1']
 model = None
 for cand in dict.fromkeys(candidates):
     try:
@@ -113,7 +135,7 @@ for f in os.listdir(outdir):
 for f in os.listdir(tmpdir):
     os.rename(os.path.join(tmpdir, f), os.path.join(outdir, f))
 os.rmdir(tmpdir)
-json.dump({'engine': 'fish', 'model': model, 'voice': reference_id or 'default', 'clips': sorted(wrote)},
+json.dump({'engine': 'fish', 'model': model, 'voice': reference_id or 'default', 'source_md5': source_md5, 'clips': sorted(wrote)},
           open(os.path.join(outdir, 'manifest.json'), 'w', encoding='utf-8'), indent=2)
 print(f"\nchars synthesized: {total_chars}")
 print(f"done: {len(wrote)} clips written with model={model}, {len(errors)} failed")

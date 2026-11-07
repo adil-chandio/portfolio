@@ -109,7 +109,7 @@ jobs:
           done
 
       - name: Gemini TTS — audition samples (sweet girl voices x 3 languages)
-        if: always()
+        if: hashFiles('tools/.run_gemini_audition') != ''
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |

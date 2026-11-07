@@ -16,8 +16,16 @@ Usage: python3 tools/gen_voice_gemini.py audition <outdir>
 import base64, json, os, re, subprocess, sys, urllib.request
 
 API = 'https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent'
-MODEL = os.environ.get('GEMINI_TTS_MODEL') or 'gemini-2.5-flash-preview-tts'
+_CFG = {}
+try:
+    _CFG = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'voice-config.json'), encoding='utf-8')) or {}
+except Exception:
+    _CFG = {}
+_forced = os.environ.get('GEMINI_TTS_MODEL') or _CFG.get('gemini_model')
+MODEL_CANDIDATES = [_forced] if _forced else []
+MODEL_CANDIDATES += ['gemini-2.5-flash-preview-tts', 'gemini-2.5-flash-tts', 'gemini-2.5-pro-preview-tts', 'gemini-2.5-pro-tts']
 KEY = os.environ.get('GEMINI_API_KEY') or ''
+ACTIVE_MODEL = [None]
 
 LINES = [  # same three languages the concierge speaks
     ('en', "Assalam-o-Alaikum! I'm the Monarch Concierge — Adil's always-awake desk. What do you want to see?"),
@@ -28,6 +36,7 @@ CANDIDATES = [v.strip() for v in (os.environ.get('GEMINI_AUDITION') or 'Aoede,Le
 FULL = LINES + None  # full mode reads the kb manifest instead
 
 def synth(text, voice):
+    model = ACTIVE_MODEL[0]
     payload = {
         'contents': [{'parts': [{'text': 'Say in a warm, friendly, natural voice:\n' + text}]}],
         'generationConfig': {
@@ -36,7 +45,7 @@ def synth(text, voice):
         },
     }
     req = urllib.request.Request(
-        API.format(model=MODEL), data=json.dumps(payload).encode(),
+        API.format(model=model), data=json.dumps(payload).encode(),
         headers={'Content-Type': 'application/json', 'x-goog-api-key': KEY}, method='POST')
     with urllib.request.urlopen(req, timeout=90) as r:
         data = json.loads(r.read())
@@ -65,10 +74,25 @@ def save_mp3(wav_bytes, out_path):
                     '-ac', '1', '-ar', '24000', '-b:a', '56k', out_path], check=True)
     os.remove(out_path.replace('.mp3', '.wav'))
 
+def probe():
+    for cand in MODEL_CANDIDATES:
+        try:
+            x = synth('Monarch voice check.', 'Kore')
+            if x and len(x) > 2000:
+                ACTIVE_MODEL[0] = cand
+                print(f'PROBE OK: model={cand} ({len(x)} bytes wav)')
+                return
+            print(f'PROBE WEAK: model={cand} ({len(x)} bytes)')
+        except Exception as e:
+            print(f'PROBE FAIL: model={cand}: {e}')
+    print('ERROR: no Gemini TTS model available on this key', file=sys.stderr)
+    sys.exit(1)
+
 def main():
     if not KEY:
         print('ERROR: GEMINI_API_KEY not set', file=sys.stderr); sys.exit(2)
     mode, outdir = sys.argv[1], sys.argv[2]
+    probe()
     os.makedirs(outdir, exist_ok=True)
     if mode == 'audition':
         ok = 0
@@ -83,9 +107,9 @@ def main():
         print(f'audition done: {ok} samples')
         if ok == 0: sys.exit(1)
     elif mode == 'full':
-        voice = os.environ.get('GEMINI_VOICE')
+        voice = os.environ.get('GEMINI_VOICE') or _CFG.get('gemini_voice')
         if not voice:
-            print('ERROR: GEMINI_VOICE variable not set — audition first', file=sys.stderr); sys.exit(2)
+            print('ERROR: gemini_voice not set in tools/voice-config.json — audition first', file=sys.stderr); sys.exit(2)
         import json as js
         manifest = js.load(open(sys.argv[3], encoding='utf-8'))
         for f in os.listdir(outdir):
