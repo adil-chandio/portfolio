@@ -51,17 +51,34 @@ speed = float(os.environ.get('VOICE_SPEED') or '1.0')
 os.makedirs(outdir, exist_ok=True)
 
 manifest = json.load(open(manifest_path, encoding='utf-8'))
-for f in os.listdir(outdir):
-    if f.endswith('.mp3'):
-        os.remove(os.path.join(outdir, f))  # engine switch must never leave stale clips
-print(f"fish plan: {manifest['count']} clips  model={model} voice={reference_id or 'default'} speed={speed}")
+print(f"fish plan: {manifest['count']} clips  voice={reference_id or 'default'} speed={speed}")
 
 c = client()
+
+# Probe models in order — s2.1-pro-free first (free tier), then paid fallbacks.
+# No clip files are touched until a model actually works.
+candidates = [os.environ.get('FISH_MODEL') or 's2.1-pro-free', 's2.1-pro', 's1']
+model = None
+for cand in dict.fromkeys(candidates):
+    try:
+        audio = c.tts.convert(text='Monarch voice check.', format='mp3', speed=1.0, model=cand)
+        if audio and len(audio) > 5000:
+            model = cand
+            print(f'PROBE OK: model={cand} ({len(audio)} bytes)')
+            break
+        print(f'PROBE WEAK: model={cand} returned {len(audio or b"")} bytes')
+    except Exception as e:
+        print(f'PROBE FAIL: model={cand}: {e}')
+if not model:
+    print('ERROR: no Fish model accepted the key/plan — set repo variable FISH_MODEL to a model your account can use', file=sys.stderr)
+    sys.exit(1)
 try:
     print('credits before:', c.account.get_credits())
 except Exception as e:
     print('credits: unavailable (%s)' % e)
 
+tmpdir = outdir.rstrip('/') + '.tmp'
+os.makedirs(tmpdir, exist_ok=True)
 errors, wrote, total_chars = [], [], 0
 for item in manifest['items']:
     if item.get('exclude'):
@@ -75,11 +92,9 @@ for item in manifest['items']:
         audio = c.tts.convert(text=text, reference_id=reference_id, format='mp3',
                               speed=speed, model=model)
         total_chars += len(text)
-        head = audio[:3]
-        ok = head == b'ID3' or (len(audio) > 10_000 and audio[0] == 0xFF and (audio[1] & 0xE0) == 0xE0)
-        if not ok:
-            raise RuntimeError(f'downloaded bytes do not look like mp3 (len={len(audio)} head={head!r})')
-        with open(os.path.join(outdir, base + '.mp3'), 'wb') as fh:
+        if len(audio) < 5000:
+            raise RuntimeError(f'suspiciously small audio payload ({len(audio)} bytes)')
+        with open(os.path.join(tmpdir, base + '.mp3'), 'wb') as fh:
             fh.write(audio)
         wrote.append(base)
         print(f"WROTE {base}.mp3  {len(audio)/1024:.0f}KB  chars={len(text)}")
@@ -87,9 +102,18 @@ for item in manifest['items']:
         errors.append({**item, 'error': str(e)})
         print(f"FAIL  {item['lang']}-{item['id']}: {e}")
 
+if errors:
+    print(f"\nFAILED {len(errors)} clips — old voice clips left untouched")
+    sys.exit(1)
+
+# all green → swap atomically
+for f in os.listdir(outdir):
+    if f.endswith('.mp3'):
+        os.remove(os.path.join(outdir, f))
+for f in os.listdir(tmpdir):
+    os.rename(os.path.join(tmpdir, f), os.path.join(outdir, f))
+os.rmdir(tmpdir)
 json.dump({'engine': 'fish', 'model': model, 'voice': reference_id or 'default', 'clips': sorted(wrote)},
           open(os.path.join(outdir, 'manifest.json'), 'w', encoding='utf-8'), indent=2)
 print(f"\nchars synthesized: {total_chars}")
-print(f"done: {len(wrote)} clips written, {len(errors)} failed")
-if errors:
-    sys.exit(1)
+print(f"done: {len(wrote)} clips written with model={model}, {len(errors)} failed")

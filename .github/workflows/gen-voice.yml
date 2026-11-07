@@ -109,6 +109,7 @@ jobs:
           done
 
       - name: Gemini TTS — audition samples (sweet girl voices x 3 languages)
+        if: always()
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
@@ -117,9 +118,11 @@ jobs:
           python3 tools/gen_voice_gemini.py audition assets/voice/audition
 
       - name: Sync VOICE_CLIPS list in assistant.js with generated files
+        if: always()
         run: python3 tools/sync_clips.py assets/voice assets/assistant.js && node --check assets/assistant.js
 
       - name: Commit & push voice clips
+        if: always()
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
