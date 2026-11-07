@@ -126,7 +126,8 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add assets/voice assets/assistant.js tools/.last_gemini_error.txt || true
+          git add assets/voice assets/assistant.js
+          if [ -f tools/.last_gemini_error.txt ]; then git add tools/.last_gemini_error.txt; fi
           if git diff --cached --quiet; then echo 'No changes — voice already up to date.'; exit 0; fi
           git commit -m "chore(voice): regenerate pre-baked concierge clips (${{ steps.engine.outputs.engine }}, CI)"
           git push
