@@ -326,9 +326,75 @@ function typing(on) {
 /* ── Voice out (text → speech) ─────────────────────────────── */
 const synth = window.speechSynthesis || null;
 
-/* Warm, human-leaning voice pick. Browser TTS quality depends on the
-   visitor's device — prefer neural/natural Google & Microsoft voices,
-   iOS Samantha-class voices; degrade gracefully to any en/ur voice.   */
+/* ── NEURAL VOICE — Kokoro-82M (Apache-2.0), runs 100% in the browser ──
+   af_heart — warm, A-grade American English voice. The model (~90MB,
+   one-time) lazy-loads from CDN on first use and is HTTP-cached forever
+   after. Zero keys, zero servers. Any failure → browser speechSynthesis. */
+const NEURAL = {
+  url: 'https://cdn.jsdelivr.net/npm/kokoro-js@1.2.1/dist/kokoro.web.js',
+  model: 'onnx-community/Kokoro-82M-v1.0-ONNX',
+  voice: 'af_heart',
+  tts: null,
+  loading: null,
+  disabled: (typeof window !== 'undefined' && window.MQ_NEURAL_VOICE === false)
+};
+const neuralEligible = () => {
+  if (NEURAL.disabled) return false;
+  try {
+    const c = navigator.connection || {};
+    if (c.saveData) return false;
+    if (c.effectiveType && /^(slow-)?2g$/i.test(c.effectiveType)) return false;
+  } catch (_) {}
+  return true;
+};
+function ensureKokoro() {
+  if (NEURAL.tts) return Promise.resolve(NEURAL.tts);
+  if (!neuralEligible()) { NEURAL.disabled = true; return Promise.resolve(null); }
+  if (NEURAL.loading) return NEURAL.loading;
+  NEURAL.loading = import(NEURAL.url)
+    .then(m => m.KokoroTTS.from_pretrained(NEURAL.model, { dtype: 'q8', device: 'wasm' }))
+    .then(tts => { NEURAL.tts = tts; return tts; })
+    .catch(() => { NEURAL.disabled = true; return null; });
+  return NEURAL.loading;
+}
+function wavBlobFrom(float32, rate) {
+  const buf = new ArrayBuffer(44 + float32.length * 2);
+  const v = new DataView(buf);
+  const wstr = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  wstr(0, 'RIFF'); v.setUint32(4, 36 + float32.length * 2, true); wstr(8, 'WAVE'); wstr(12, 'fmt ');
+  v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, rate, true); v.setUint32(28, rate * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+  wstr(36, 'data'); v.setUint32(40, float32.length * 2, true);
+  let o = 44;
+  for (let i = 0; i < float32.length; i++, o += 2) { const s = Math.max(-1, Math.min(1, float32[i])); v.setInt16(o, s < 0 ? s * 0x8000 : s * 0x7FFF, true); }
+  return new Blob([buf], { type: 'audio/wav' });
+}
+let currentAudio = null;
+function stopAllAudio() {
+  if (synth) { try { synth.cancel(); } catch (_) {} }
+  if (currentAudio) { try { currentAudio.pause(); } catch (_) {} try { URL.revokeObjectURL(currentAudio.src); } catch (_) {} currentAudio = null; }
+}
+async function neuralSpeak(text) {
+  const tts = await ensureKokoro();
+  if (!tts) return false;
+  try {
+    const audio = await tts.generate(text, { voice: NEURAL.voice, speed: 1 });
+    let blob = null;
+    if (audio && typeof audio.toBlob === 'function') blob = await audio.toBlob();
+    else if (audio && audio.audio && audio.sampling_rate) blob = wavBlobFrom(audio.audio, audio.sampling_rate);
+    if (!blob) return false;
+    stopAllAudio();
+    const url = URL.createObjectURL(blob);
+    const a = new Audio(url);
+    currentAudio = a;
+    a.onended = () => { try { URL.revokeObjectURL(url); } catch (_) {} };
+    await a.play();
+    return true;
+  } catch (_) { return false; }
+}
+
+/* Warm, human-leaning browser voice — fallback for Urdu script and for
+   any neural failure. Quality varies by device, so keep Kokoro first.   */
 const VOICE_WISH_EN = ['aria', 'emma', 'jenny', 'ava', 'google us english', 'google uk english female',
   'samantha', 'karen', 'moira', 'tessa', 'zira', 'veena', 'zoe'];
 const VOICE_WISH_UR = ['urdu', 'veena', 'heera', 'swara', 'hindi'];
@@ -348,29 +414,43 @@ function pickVoice(isUrdu, voices) {
   const en = v.find(x => norm(x).startsWith('en')); if (en) return en;
   return v[0] || null;
 }
-function speakText(html) {
-  if (!state.sound || !synth) return;
+function browserSpeak(text, isUrdu) {
+  if (!synth) return;
   try {
-    const tmp = document.createElement('div');
-    tmp.innerHTML = html;
-    const text = (tmp.textContent || '')
-      .replace(/\*\*([^*]+)\*\*/g, '$1')
-      .replace(/[*_`#~]/g, ' ')
-      .replace(/https?:\/\/\S+/g, ' ')
-      .replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE00}-\u{FE0F}\u{200D}]/gu, ' ')
-      .replace(/[→←↑↓•·]/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
-    if (!text) return;
     synth.cancel();
-    const isUrdu = /[\u0600-\u06FF]/.test(text);
-    const u = new SpeechSynthesisUtterance(text.slice(0, 420));
+    const u = new SpeechSynthesisUtterance(text);
     u.rate = 0.97; u.pitch = 1.05; u.volume = 1;
     const v = pickVoice(isUrdu, synth.getVoices() || []);
     if (v) u.voice = v;
     u.lang = v ? v.lang : (isUrdu ? 'ur-PK' : 'en-US');
     synth.speak(u);
   } catch (_) {}
+}
+function cleanForSpeech(html) {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  return (tmp.textContent || '')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/[*_`#~]/g, ' ')
+    .replace(/https?:\/\/\S+/g, ' ')
+    .replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE00}-\u{FE0F}\u{200D}]/gu, ' ')
+    .replace(/[→←↑↓•·]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+function speakText(html) {
+  if (!state.sound) return;
+  const text = cleanForSpeech(html);
+  if (!text) return;
+  const isUrdu = /[\u0600-\u06FF]/.test(text);
+  if (!isUrdu) {
+    if (NEURAL.tts) {
+      neuralSpeak(text.slice(0, 420)).then(ok => { if (!ok) browserSpeak(text.slice(0, 420), false); });
+      return;
+    }
+    if (neuralEligible()) ensureKokoro(); // warm cache for the next reply
+  }
+  browserSpeak(text.slice(0, 420), isUrdu);
 }
 
 /* ── MONARCH Showcase — only what Adil chooses to show. No metrics, no
