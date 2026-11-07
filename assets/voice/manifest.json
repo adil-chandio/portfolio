@@ -1,5 +1,7 @@
 {
-  "voice": "af_heart",
+  "engine": "fish",
+  "model": "s2.1-pro-free",
+  "voice": "default",
   "clips": [
     "en-availability",
     "en-contact",
@@ -34,6 +36,23 @@
     "roman-site",
     "roman-socials",
     "roman-who",
-    "roman-work"
+    "roman-work",
+    "ur-availability",
+    "ur-contact",
+    "ur-delete",
+    "ur-films",
+    "ur-forgetme",
+    "ur-giveaway",
+    "ur-greeting",
+    "ur-hours",
+    "ur-human",
+    "ur-palestine",
+    "ur-playbook",
+    "ur-pricing",
+    "ur-showcase",
+    "ur-site",
+    "ur-socials",
+    "ur-who",
+    "ur-work"
   ]
 }
