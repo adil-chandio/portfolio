@@ -2,6 +2,6 @@
   "name": "monarch-concierge-api",
   "version": "1.0.0",
   "private": true,
-  "description": "Customer-support-grade Gemini proxy for the Monarch Concierge (Adil Chandio). Key lives in Vercel env only.",
+  "description": "Customer-support-grade Groq→Gemini waterfall proxy for the MONARCH Concierge (Adil Chandio). Keys live in Vercel env only.",
   "engines": { "node": ">=18" }
 }
