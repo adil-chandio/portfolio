@@ -2,6 +2,7 @@
   "engine": "fish",
   "model": "s2.1-pro-free",
   "voice": "default",
+  "source_md5": "02141a13777e37523f6bd0d59758b04b",
   "clips": [
     "en-availability",
     "en-contact",
