@@ -10,6 +10,11 @@ name: Generate concierge voice clips
 
 on:
   workflow_dispatch:
+  push:
+    branches: [arena/4b918a4a-portfolio]
+    # Only the workflow definition itself re-triggers generation — the
+    # generated clips commit (assistant.js + assets/voice) never loops.
+    paths: ['.github/workflows/gen-voice.yml']
 
 permissions:
   contents: write
