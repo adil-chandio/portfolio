@@ -108,6 +108,14 @@ jobs:
             rm "$f"
           done
 
+      - name: Gemini TTS — audition samples (sweet girl voices x 3 languages)
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          if [ -z "$GEMINI_API_KEY" ]; then echo 'no GEMINI_API_KEY — skipping audition'; exit 0; fi
+          sudo apt-get update >/dev/null && sudo apt-get install -y --no-install-recommends ffmpeg >/dev/null
+          python3 tools/gen_voice_gemini.py audition assets/voice/audition
+
       - name: Sync VOICE_CLIPS list in assistant.js with generated files
         run: python3 tools/sync_clips.py assets/voice assets/assistant.js && node --check assets/assistant.js
 
