@@ -1,0 +1,7 @@
+{
+  "name": "monarch-concierge-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Customer-support-grade Gemini proxy for the Monarch Concierge (Adil Chandio). Key lives in Vercel env only.",
+  "engines": { "node": ">=18" }
+}

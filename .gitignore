@@ -1,0 +1,4 @@
+
+# Python bytecode (local tooling)
+__pycache__/
+*.pyc

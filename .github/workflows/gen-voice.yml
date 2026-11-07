@@ -1,0 +1,133 @@
+name: Generate concierge voice clips
+
+# One-shot, human-triggered. Builds the pre-baked voice for the Monarch
+# Concierge entirely on GitHub-hosted runners. Keys come from GitHub Secrets
+# and are never written to the repo or the static site.
+#
+# Engine selection (automatic):
+#   - FISH_API_KEY secret present  → Fish Audio (human Urdu/Hinglish/English,
+#                                     mp3 direct, includes Urdu-script clips)
+#   - otherwise                    → Kokoro-82M int8 fallback (English/roman only)
+#
+# Optional repo Variables (Settings → Secrets and variables → Actions → Variables):
+#   FISH_MODEL          e.g. s2.1-pro (default) or s2.1-pro-free
+#   FISH_REFERENCE_ID   a fish.audio voice id (premade/cloned); unset = Fish default
+#   VOICE_SPEED         e.g. 1.0
+# Discovery: gh workflow run is blocked off the default branch — until this
+# workflow merges to main, nudge a run by pushing any change under tools/**.
+# Manual dispatch stays available post-merge (Actions → Run workflow).
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [arena/4b918a4a-portfolio]
+    # Tools + this file re-trigger generation; the bot's assets/voice commit never loops.
+    paths: ['.github/workflows/gen-voice.yml', 'tools/**']
+
+permissions:
+  contents: write
+
+concurrency: gen-voice-clips
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout (this branch)
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Decide voice engine
+        id: engine
+        env:
+          FISH_API_KEY: ${{ secrets.FISH_API_KEY }}
+        run: |
+          if [ -n "$FISH_API_KEY" ]; then
+            echo "engine=fish" >> "$GITHUB_OUTPUT"
+            echo "engine: fish (Fish Audio secret found — human Urdu enabled)"
+          else
+            echo "engine=kokoro" >> "$GITHUB_OUTPUT"
+            echo "engine: kokoro (no FISH_API_KEY yet — English/roman only)"
+          fi
+
+      - name: Dump KB spoken-text manifest
+        env:
+          INCLUDE_URDU: ${{ steps.engine.outputs.engine == 'fish' && '1' || '0' }}
+        run: node tools/dump-kb.mjs /tmp/kb.json
+
+      - name: Fish — install SDK, show voice options + credits
+        if: steps.engine.outputs.engine == 'fish' && hashFiles('tools/.skip_voice_gen') == ''
+        env:
+          FISH_API_KEY: ${{ secrets.FISH_API_KEY }}
+        run: |
+          pip install --quiet fish-audio-sdk
+          python3 tools/gen_voice_fish.py --list-voices /tmp/ignore.json /tmp/ignore 2>&1 | head -50 || true
+
+      - name: Fish — synthesize clips
+        if: steps.engine.outputs.engine == 'fish' && hashFiles('tools/.skip_voice_gen') == ''
+        env:
+          FISH_API_KEY: ${{ secrets.FISH_API_KEY }}
+          FISH_MODEL: ${{ vars.FISH_MODEL }}
+          FISH_REFERENCE_ID: ${{ vars.FISH_REFERENCE_ID }}
+          VOICE_SPEED: ${{ vars.VOICE_SPEED }}
+        run: python3 tools/gen_voice_fish.py /tmp/kb.json assets/voice
+
+      - name: Kokoro — install deps + fetch model (GitHub release assets)
+        if: steps.engine.outputs.engine == 'kokoro'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends espeak-ng ffmpeg
+          pip install --quiet kokoro-onnx soundfile numpy
+          mkdir -p /tmp/kokoro
+          gh release download model-files-v1.0 --repo thewh1teagle/kokoro-onnx \
+            --pattern 'kokoro-v1.0.int8.onnx' --pattern 'voices-v1.0.bin' -D /tmp/kokoro
+
+      - name: Kokoro — synthesize clips
+        if: steps.engine.outputs.engine == 'kokoro' && hashFiles('tools/.skip_voice_gen') == ''
+        run: MODEL_DIR=/tmp/kokoro python3 tools/gen_voice.py /tmp/kb.json assets/voice
+
+      - name: Kokoro — WAV → MP3 (mono 24kHz, loudness-normalized, 56k)
+        if: steps.engine.outputs.engine == 'kokoro'
+        run: |
+          cd assets/voice
+          for f in *.wav; do
+            ffmpeg -y -loglevel error -i "$f" -ac 1 -ar 24000 \
+              -af loudnorm=I=-19:TP=-3 -b:a 56k "${f%.wav}.mp3"
+            rm "$f"
+          done
+
+      - name: Gemini TTS — audition samples (sweet girl voices x 3 languages)
+        if: hashFiles('tools/.run_gemini_audition') != ''
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          if [ -z "$GEMINI_API_KEY" ]; then echo 'no GEMINI_API_KEY — skipping audition'; exit 0; fi
+          which ffmpeg && ffmpeg -version | head -1 || echo 'WARN: ffmpeg missing — will surface in python step'
+          python3 tools/gen_voice_gemini.py audition assets/voice/audition
+
+      - name: Sync VOICE_CLIPS list in assistant.js with generated files
+        if: always()
+        run: python3 tools/sync_clips.py assets/voice assets/assistant.js && node --check assets/assistant.js
+
+      - name: Commit & push voice clips
+        if: always()
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/voice assets/assistant.js
+          if [ -f tools/.last_gemini_error.txt ]; then git add tools/.last_gemini_error.txt; fi
+          if git diff --cached --quiet; then echo 'No changes — voice already up to date.'; exit 0; fi
+          git commit -m "chore(voice): regenerate pre-baked concierge clips (${{ steps.engine.outputs.engine }}, CI)"
+          git push
