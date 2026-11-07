@@ -37,7 +37,7 @@ function detectLang(q) {
 const L = (lang, en, roman, ur) => lang === 'roman' ? roman : lang === 'ur' ? (ur || roman) : en;
 
 /* ── Quick-reply chips ─────────────────────────────────────── */
-const CHIPS_MAIN  = ['Who is Adil?', 'What does he do?', 'Show the work', 'Get in touch', 'Giveaways 🎁'];
+const CHIPS_MAIN  = ['Who is Adil?', 'What does he do?', 'Show the work', 'Get in touch', 'Giveaways 🎁', 'Live stats'];
 const CHIPS_WORK  = ['Services & pricing', 'Show the work', 'Get in touch'];
 const CHIPS_LOOT  = ['Get the playbook', 'More repos', 'Get in touch'];
 
@@ -165,6 +165,19 @@ const KB = [
     `Yeh site? **Vanilla HTML/CSS/JS, GitHub Pages pe** — koi framework nahi, koi build step nahi.\n\nOpening — cursors site ko *aake saamne rebuild karte hain* — hand-rolled JS hai. Aur jab cursors khatam hon, void wahi rehta hai.\n\nSource: <a href="https://github.com/adil-chandio/portfolio" target="_blank" rel="noopener">github.com/adil-chandio/portfolio</a> — study karo, steal karo, par apna banana.\n\nAur yeh Concierge? Rule-based, yahin tumhare browser mein — **jo tum type karte ho woh kahin nahi jata.**`,
     `یہ سائٹ؟ **Vanilla HTML/CSS/JS، GitHub Pages پر**۔ اوپننگ — کرسرز سائٹ کو تمہارے سامنے دوبارہ بناتے ہیں — وہ ہینڈ رولڈ JS ہے۔\n\nسورس: <a href="https://github.com/adil-chandio/portfolio" target="_blank" rel="noopener">github.com/adil-chandio/portfolio</a>\n\nاور یہ Concierge؟ تمہارے براؤزر میں rule-based — **جو کچھ تم لکھتے ہو، وہ کہیں نہیں جاتا۔**`),
   chips: ['Giveaways 🎁', 'Who is Adil?', 'Get in touch']
+},
+{
+  id: 'live',
+  patterns: ['live stats','github stats','latest repo','latest repos','recent repos','latest commits','what is he building','what is he working on','what are you working on','what are you building','kya bana raha','kya ban raha','kya bana','how many repos','repo list','repositories','stars','github pe kya','latest kaam','رہا کام','آخری ریپو','اسٹارز','ریپو'],
+  answer: (lang) => {
+    if (statsCache) return statsHtml(statsCache, lang);
+    loadStats().then(real => { addBubble('bot', real ? statsHtml(real, lang) : statsFallback(lang)); });
+    return L(lang,
+      '🔌 Pulling Adil’s **live** GitHub stats… one second.',
+      '🔌 Adil ke GitHub se **LIVE** stats khinch raha hun… ek second.',
+      '🔌 عادل کے گٹ ہب سے **لائیو** اسٹیٹس لا رہا ہوں… ایک سیکنڈ۔');
+  },
+  chips: ['Show the work', 'Giveaways 🎁', 'Get in touch']
 },
 {
   id: 'human',
@@ -360,6 +373,48 @@ function speakText(html) {
   } catch (_) {}
 }
 
+/* ── Live GitHub stats (fed by .github/workflows/update-live-stats.yml) ──
+   assets/live-stats.json is refreshed ~4x daily from real GitHub data.
+   Zero keys at runtime; concierge reads a plain static file.           */
+let statsCache = null, statsPromise = null;
+function loadStats() {
+  if (statsCache) return Promise.resolve(statsCache);
+  if (typeof fetch !== 'function') { statsCache = false; return Promise.resolve(false); }
+  if (statsPromise) return statsPromise;
+  statsPromise = fetch('assets/live-stats.json', { cache: 'no-cache' })
+    .then(r => (r && r.ok ? r.json() : null))
+    .then(j => { statsCache = j || false; return statsCache; })
+    .catch(() => { statsCache = false; return false; });
+  return statsPromise;
+}
+function statsAge(iso) {
+  const t = Date.parse(iso); if (isNaN(t)) return '';
+  const h = Math.floor((Date.now() - t) / 36e5);
+  if (h < 1) return 'just now';
+  if (h < 48) return h + 'h ago';
+  return Math.floor(h / 24) + 'd ago';
+}
+const statsZeroLine = (lang) => L(lang,
+  '⭐ **0 stars** — every empire starts at zero. 👑',
+  '⭐ **0 stars** — har empire zero se shuru hoti hai 👑',
+  '⭐ **0 اسٹارز** — ہر ایمپائر صفر سے شروع ہوتی ہے 👑');
+function statsHtml(s, lang) {
+  const esc = escapeHtml;
+  const repoLine = r => `• <a href="${esc(r.url || '')}" target="_blank" rel="noopener">${esc(r.name || 'repo')}</a>${r.description ? ' — ' + esc(r.description) : ''}`;
+  const names = (s.top || []).map(repoLine).join('\n');
+  const starsLine = s.stars > 0
+    ? `⭐ **${s.stars} stars** · 🍴 ${s.forks} forks`
+    : statsZeroLine(lang);
+  return L(lang,
+    `**LIVE from GitHub** ⚡ (updated ${statsAge(s.updated)})\n\n**${s.public_repos} public repos** · ${s.stars} stars · ${s.followers} followers\n\nLatest pushes:\n${names}\n\n${starsLine}\n\n<a class="mq-cta" href="https://github.com/adil-chandio" target="_blank" rel="noopener">OPEN GITHUB →</a>`,
+    `**GitHub se LIVE** ⚡ (${statsAge(s.updated)} pehle update hua)\n\n**${s.public_repos} public repos** · ${s.stars} stars · ${s.followers} followers\n\nLatest pushes:\n${names}\n\n${starsLine}\n\n<a class="mq-cta" href="https://github.com/adil-chandio" target="_blank" rel="noopener">GITHUB KHOLO →</a>`,
+    `**گٹ ہب سے لائیو** ⚡\n\n**${s.public_repos} پبلک ریپوز** · ${s.stars} اسٹارز · ${s.followers} فالوورز\n\nتازہ ترین:\n${names}\n\n${starsLine}\n\n<a class="mq-cta" href="https://github.com/adil-chandio" target="_blank" rel="noopener">گٹ ہب →</a>`);
+}
+const statsFallback = (lang) => L(lang,
+  '🔌 Couldn’t reach GitHub live stats right now — but the source is always here: <a href="https://github.com/adil-chandio" target="_blank" rel="noopener">github.com/adil-chandio</a>',
+  '🔌 GitHub live stats is waqt na aa sake — par source hamesha yahan hai: <a href="https://github.com/adil-chandio" target="_blank" rel="noopener">github.com/adil-chandio</a>',
+  '🔌 گٹ ہب کے لائیو اسٹیٹس اس وقت نہیں ملے — لیکن سورس ہمیشہ یہاں ہے: <a href="https://github.com/adil-chandio" target="_blank" rel="noopener">github.com/adil-chandio</a>');
+
 /* ── Answer pipeline ───────────────────────────────────────── */
 const wait = ms => new Promise(r => setTimeout(r, ms));
 async function respond(raw) {
@@ -474,6 +529,7 @@ function setOpen(open) {
   fab.setAttribute('aria-expanded', open ? 'true' : 'false');
   fab.classList.remove('has-unread');
   if (open) {
+    loadStats();
     setTimeout(() => $('#mqInput').focus({ preventScroll: true }), 160);
     if (!state.greeted && !state.sound) {
       state.greeted = 'muted';
