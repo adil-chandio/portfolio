@@ -1,0 +1,80 @@
+name: Generate concierge voice clips
+
+# One-shot, human-triggered only. Builds the pre-generated neural voice for
+# the Monarch Concierge entirely on GitHub-hosted runners:
+#   Kokoro-82M int8 (Apache-2.0) + voices bin, downloaded from OUR release
+#   mirror (thewh1teagle/kokoro-onnx, model-files-v1.0). No secrets needed.
+# Output: assets/voice/<lang>-<intent>.mp3, committed back to the branch.
+# Trigger: gh workflow run gen-voice.yml --ref arena/4b918a4a-portfolio
+# (or the Actions tab → Run workflow, with the branch selected)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency: gen-voice-clips
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout (this branch)
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install espeak-ng + ffmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends espeak-ng ffmpeg
+
+      - name: Install Python deps
+        run: pip install --quiet kokoro-onnx soundfile numpy
+
+      - name: Download Kokoro int8 model + voices (GitHub release assets)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p /tmp/kokoro
+          gh release download model-files-v1.0 --repo thewh1teagle/kokoro-onnx \
+            --pattern 'kokoro-v1.0.int8.onnx' --pattern 'voices-v1.0.bin' -D /tmp/kokoro
+          ls -la /tmp/kokoro
+
+      - name: Dump KB spoken-text manifest
+        run: node tools/dump-kb.mjs /tmp/kb.json
+
+      - name: Generate WAVs (Kokoro af_heart)
+        run: MODEL_DIR=/tmp/kokoro python3 tools/gen_voice.py /tmp/kb.json assets/voice
+
+      - name: WAV → MP3 (mono 24kHz, loudness-normalized, 56k)
+        run: |
+          cd assets/voice
+          for f in *.wav; do
+            ffmpeg -y -loglevel error -i "$f" -ac 1 -ar 24000 \
+              -af loudnorm=I=-19:TP=-3 -b:a 56k "${f%.wav}.mp3"
+            rm "$f"
+          done
+          ls -la
+
+      - name: Sync VOICE_CLIPS list in assistant.js with generated files
+        run: python3 tools/sync_clips.py assets/voice assets/assistant.js && node --check assets/assistant.js
+
+      - name: Commit & push voice clips
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/voice assets/assistant.js
+          if git diff --cached --quiet; then echo 'No changes — nothing to commit.'; exit 0; fi
+          git commit -m 'chore(voice): regenerate pre-baked concierge clips (Kokoro af_heart, Apache-2.0, CI)'
+          git push
