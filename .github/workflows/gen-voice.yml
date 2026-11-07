@@ -66,7 +66,7 @@ jobs:
         run: node tools/dump-kb.mjs /tmp/kb.json
 
       - name: Fish — install SDK, show voice options + credits
-        if: steps.engine.outputs.engine == 'fish'
+        if: steps.engine.outputs.engine == 'fish' && hashFiles('tools/.skip_voice_gen') == ''
         env:
           FISH_API_KEY: ${{ secrets.FISH_API_KEY }}
         run: |
@@ -74,7 +74,7 @@ jobs:
           python3 tools/gen_voice_fish.py --list-voices /tmp/ignore.json /tmp/ignore 2>&1 | head -50 || true
 
       - name: Fish — synthesize clips
-        if: steps.engine.outputs.engine == 'fish'
+        if: steps.engine.outputs.engine == 'fish' && hashFiles('tools/.skip_voice_gen') == ''
         env:
           FISH_API_KEY: ${{ secrets.FISH_API_KEY }}
           FISH_MODEL: ${{ vars.FISH_MODEL }}
@@ -95,7 +95,7 @@ jobs:
             --pattern 'kokoro-v1.0.int8.onnx' --pattern 'voices-v1.0.bin' -D /tmp/kokoro
 
       - name: Kokoro — synthesize clips
-        if: steps.engine.outputs.engine == 'kokoro'
+        if: steps.engine.outputs.engine == 'kokoro' && hashFiles('tools/.skip_voice_gen') == ''
         run: MODEL_DIR=/tmp/kokoro python3 tools/gen_voice.py /tmp/kb.json assets/voice
 
       - name: Kokoro — WAV → MP3 (mono 24kHz, loudness-normalized, 56k)
@@ -126,7 +126,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add assets/voice assets/assistant.js
+          git add assets/voice assets/assistant.js tools/.last_gemini_error.txt || true
           if git diff --cached --quiet; then echo 'No changes — voice already up to date.'; exit 0; fi
           git commit -m "chore(voice): regenerate pre-baked concierge clips (${{ steps.engine.outputs.engine }}, CI)"
           git push
