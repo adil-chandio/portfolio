@@ -35,6 +35,8 @@ LINES = [  # same three languages the concierge speaks
 CANDIDATES = [v.strip() for v in (os.environ.get('GEMINI_AUDITION') or 'Aoede,Leda,Achernar,Zephyr,Kore').split(',') if v.strip()]
 FULL = LINES + None  # full mode reads the kb manifest instead
 
+LAST_ERRORS = []
+
 def synth(text, voice):
     model = ACTIVE_MODEL[0]
     payload = {
@@ -83,16 +85,38 @@ def probe():
                 print(f'PROBE OK: model={cand} ({len(x)} bytes wav)')
                 return
             print(f'PROBE WEAK: model={cand} ({len(x)} bytes)')
-        except Exception as e:
-            print(f'PROBE FAIL: model={cand}: {e}')
+            except Exception as e:
+            detail = ''
+            try:
+                import urllib.error, json as _j
+                if isinstance(e, urllib.error.HTTPError):
+                    detail = e.read().decode('utf-8', 'ignore')[:600]
+            except Exception:
+                pass
+            LAST_ERRORS.append(f'{cand}: {type(e).__name__}: {e} | body={detail}')
+            print(f'PROBE FAIL: model={cand}: {e}  body={detail}')
     print('ERROR: no Gemini TTS model available on this key', file=sys.stderr)
+    try:
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '.last_gemini_error.txt'), 'w', encoding='utf-8') as fh:
+            fh.write('
+'.join(LAST_ERRORS))
+    except Exception:
+        pass
     sys.exit(1)
 
 def main():
     if not KEY:
         print('ERROR: GEMINI_API_KEY not set', file=sys.stderr); sys.exit(2)
     mode, outdir = sys.argv[1], sys.argv[2]
-    probe()
+    try:
+        probe()
+    except SystemExit:
+        # persist the probe's findings for debugging (no secrets in Google's error bodies)
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '.last_gemini_error.txt'), 'w', encoding='utf-8') as fh:
+            import traceback
+            fh.write('probe failed — see step log. Validate: model ids, v1alpha vs v1beta, quota for TTS models on your key.
+')
+        raise
     os.makedirs(outdir, exist_ok=True)
     if mode == 'audition':
         ok = 0
