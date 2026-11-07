@@ -27,7 +27,7 @@ os.makedirs(outdir, exist_ok=True)
 manifest = json.load(open(manifest_path, encoding='utf-8'))
 import hashlib
 source_md5 = hashlib.md5(json.dumps(
-    [{k: i.get(k) for k in ('id', 'lang', 'text', 'exclude', 'reason')} for i in manifest['items']],
+    [{k: i.get(k) for k in ('id', 'lang', 'text', 'exclude')} for i in manifest['items']],
     sort_keys=True).encode()).hexdigest()
 prev_path = os.path.join(outdir, 'manifest.json')
 if os.path.exists(prev_path):

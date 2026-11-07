@@ -34,7 +34,7 @@ LINES = [
     ('roman', 'Assalam-o-Alaikum! Main Monarch Concierge hun — Adil ki jagah. Kya dekhna chahoge?'),
     ('ur', 'السلام علیکم! میں Monarch Concierge ہوں۔ بتائیں، آپ کیا دیکھنا چاہیں گے؟'),
 ]
-CANDIDATES = [v.strip() for v in (os.environ.get('GEMINI_AUDITION') or 'Aoede,Leda,Achernar,Zephyr,Kore').split(',') if v.strip()]
+CANDIDATES = [v.strip() for v in (os.environ.get('GEMINI_AUDITION') or 'Aoede,Leda,Achernar').split(',') if v.strip()]
 ACTIVE = {'model': None, 'api': 'v1beta', 'errors': []}
 
 
