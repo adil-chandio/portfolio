@@ -1,7 +1,7 @@
 {
   "engine": "fish",
   "model": "s2.1-pro-free",
-  "voice": "default",
+  "voice": "bccb63f9e56244a0a9991c04e81bfeec",
   "source_md5": "a58c5e022992824c848354d38be1485c",
   "clips": [
     "en-availability",
