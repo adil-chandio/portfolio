@@ -46,6 +46,7 @@ function cleanForSpeech(html) {
     .trim();
 }
 
+const INCLUDE_URDU = process.env.INCLUDE_URDU === '1'; // Fish speaks Urdu; Kokoro doesn't
 const EXCLUDE = { name: 'dynamic — visitor name interpolated' };
 const items = [];
 for (const { id, langs } of sandbox.__KB) {
@@ -53,7 +54,7 @@ for (const { id, langs } of sandbox.__KB) {
     const raw = langs[lang];
     const entry = { id, lang, exclude: false, reason: '', text: '' };
     if (!raw) { entry.exclude = true; entry.reason = 'render error'; }
-    else if (lang === 'ur') { entry.exclude = true; entry.reason = 'Kokoro speaks English — Urdu script keeps the device ur-PK voice'; }
+    else if (lang === 'ur' && !INCLUDE_URDU) { entry.exclude = true; entry.reason = 'No Urdu-capable engine configured (Urdu script keeps the device ur-PK voice)'; }
     else if (EXCLUDE[id]) { entry.exclude = true; entry.reason = EXCLUDE[id]; }
     else entry.text = cleanForSpeech(raw);
     items.push(entry);

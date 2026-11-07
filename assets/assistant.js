@@ -392,7 +392,7 @@ function speakText(html, clipId, lang) {
   if (!text) return;
   stopAllAudio();
   const isUrdu = /[\u0600-\u06FF]/.test(text);
-  if (!isUrdu && clipId && lang && lang !== 'ur' && VOICE_CLIPS.has(lang + '-' + clipId)) {
+  if (clipId && lang && VOICE_CLIPS.has(lang + '-' + clipId)) {
     const a = new Audio(voiceClipUrl(lang, clipId));
     currentAudio = a;
     let settled = false;

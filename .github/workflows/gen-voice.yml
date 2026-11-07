@@ -1,20 +1,28 @@
 name: Generate concierge voice clips
 
-# One-shot, human-triggered only. Builds the pre-generated neural voice for
-# the Monarch Concierge entirely on GitHub-hosted runners:
-#   Kokoro-82M int8 (Apache-2.0) + voices bin, downloaded from OUR release
-#   mirror (thewh1teagle/kokoro-onnx, model-files-v1.0). No secrets needed.
-# Output: assets/voice/<lang>-<intent>.mp3, committed back to the branch.
-# Trigger: gh workflow run gen-voice.yml --ref arena/4b918a4a-portfolio
-# (or the Actions tab → Run workflow, with the branch selected)
+# One-shot, human-triggered. Builds the pre-baked voice for the Monarch
+# Concierge entirely on GitHub-hosted runners. Keys come from GitHub Secrets
+# and are never written to the repo or the static site.
+#
+# Engine selection (automatic):
+#   - FISH_API_KEY secret present  → Fish Audio (human Urdu/Hinglish/English,
+#                                     mp3 direct, includes Urdu-script clips)
+#   - otherwise                    → Kokoro-82M int8 fallback (English/roman only)
+#
+# Optional repo Variables (Settings → Secrets and variables → Actions → Variables):
+#   FISH_MODEL          e.g. s2.1-pro (default) or s2.1-pro-free
+#   FISH_REFERENCE_ID   a fish.audio voice id (premade/cloned); unset = Fish default
+#   VOICE_SPEED         e.g. 1.0
+# Discovery: gh workflow run is blocked off the default branch — until this
+# workflow merges to main, nudge a run by pushing any change under tools/**.
+# Manual dispatch stays available post-merge (Actions → Run workflow).
 
 on:
   workflow_dispatch:
   push:
     branches: [arena/4b918a4a-portfolio]
-    # Only the workflow definition itself re-triggers generation — the
-    # generated clips commit (assistant.js + assets/voice) never loops.
-    paths: ['.github/workflows/gen-voice.yml']
+    # Tools + this file re-trigger generation; the bot's assets/voice commit never loops.
+    paths: ['.github/workflows/gen-voice.yml', 'tools/**']
 
 permissions:
   contents: write
@@ -39,30 +47,59 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install espeak-ng + ffmpeg
+      - name: Decide voice engine
+        id: engine
+        env:
+          FISH_API_KEY: ${{ secrets.FISH_API_KEY }}
         run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends espeak-ng ffmpeg
+          if [ -n "$FISH_API_KEY" ]; then
+            echo "engine=fish" >> "$GITHUB_OUTPUT"
+            echo "engine: fish (Fish Audio secret found — human Urdu enabled)"
+          else
+            echo "engine=kokoro" >> "$GITHUB_OUTPUT"
+            echo "engine: kokoro (no FISH_API_KEY yet — English/roman only)"
+          fi
 
-      - name: Install Python deps
-        run: pip install --quiet kokoro-onnx soundfile numpy
+      - name: Dump KB spoken-text manifest
+        env:
+          INCLUDE_URDU: ${{ steps.engine.outputs.engine == 'fish' && '1' || '0' }}
+        run: node tools/dump-kb.mjs /tmp/kb.json
 
-      - name: Download Kokoro int8 model + voices (GitHub release assets)
+      - name: Fish — install SDK, show voice options + credits
+        if: steps.engine.outputs.engine == 'fish'
+        env:
+          FISH_API_KEY: ${{ secrets.FISH_API_KEY }}
+        run: |
+          pip install --quiet fish-audio-sdk
+          python3 tools/gen_voice_fish.py --list-voices /tmp/ignore.json /tmp/ignore 2>&1 | head -50 || true
+
+      - name: Fish — synthesize clips
+        if: steps.engine.outputs.engine == 'fish'
+        env:
+          FISH_API_KEY: ${{ secrets.FISH_API_KEY }}
+          FISH_MODEL: ${{ vars.FISH_MODEL }}
+          FISH_REFERENCE_ID: ${{ vars.FISH_REFERENCE_ID }}
+          VOICE_SPEED: ${{ vars.VOICE_SPEED }}
+        run: python3 tools/gen_voice_fish.py /tmp/kb.json assets/voice
+
+      - name: Kokoro — install deps + fetch model (GitHub release assets)
+        if: steps.engine.outputs.engine == 'kokoro'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends espeak-ng ffmpeg
+          pip install --quiet kokoro-onnx soundfile numpy
           mkdir -p /tmp/kokoro
           gh release download model-files-v1.0 --repo thewh1teagle/kokoro-onnx \
             --pattern 'kokoro-v1.0.int8.onnx' --pattern 'voices-v1.0.bin' -D /tmp/kokoro
-          ls -la /tmp/kokoro
 
-      - name: Dump KB spoken-text manifest
-        run: node tools/dump-kb.mjs /tmp/kb.json
-
-      - name: Generate WAVs (Kokoro af_heart)
+      - name: Kokoro — synthesize clips
+        if: steps.engine.outputs.engine == 'kokoro'
         run: MODEL_DIR=/tmp/kokoro python3 tools/gen_voice.py /tmp/kb.json assets/voice
 
-      - name: WAV → MP3 (mono 24kHz, loudness-normalized, 56k)
+      - name: Kokoro — WAV → MP3 (mono 24kHz, loudness-normalized, 56k)
+        if: steps.engine.outputs.engine == 'kokoro'
         run: |
           cd assets/voice
           for f in *.wav; do
@@ -70,7 +107,6 @@ jobs:
               -af loudnorm=I=-19:TP=-3 -b:a 56k "${f%.wav}.mp3"
             rm "$f"
           done
-          ls -la
 
       - name: Sync VOICE_CLIPS list in assistant.js with generated files
         run: python3 tools/sync_clips.py assets/voice assets/assistant.js && node --check assets/assistant.js
@@ -80,6 +116,6 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add assets/voice assets/assistant.js
-          if git diff --cached --quiet; then echo 'No changes — nothing to commit.'; exit 0; fi
-          git commit -m 'chore(voice): regenerate pre-baked concierge clips (Kokoro af_heart, Apache-2.0, CI)'
+          if git diff --cached --quiet; then echo 'No changes — voice already up to date.'; exit 0; fi
+          git commit -m "chore(voice): regenerate pre-baked concierge clips (${{ steps.engine.outputs.engine }}, CI)"
           git push
