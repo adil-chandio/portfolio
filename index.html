@@ -8,6 +8,8 @@
 <meta property="og:title" content="Adil Chandio — Portfolio">
 <meta property="og:description" content="AI learner • content creator • developer. Opens with the MONARCH portfolio film.">
 <meta property="og:image" content="assets/thumbs/th-power.jpg?v=64">
+<meta property="og:image:alt" content="MONARCH portfolio film — the M4 silhouette, Adil Chandio">
+<meta name="twitter:image:alt" content="MONARCH portfolio film — the M4 silhouette, Adil Chandio">
 <link rel="icon" type="image/png" href="assets/logo-64.png?v=14">
 <link rel="apple-touch-icon" href="assets/logo-180.png?v=14">
 <link rel="manifest" href="manifest.webmanifest">
@@ -16,8 +18,11 @@
 <meta name="twitter:title" content="Adil Chandio — Portfolio">
 <meta name="twitter:description" content="AI learner • content creator • developer. Opens with the MONARCH portfolio film.">
 <meta name="twitter:image" content="assets/thumbs/th-power.jpg">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Person","name":"Adil Chandio","url":"https://adil-chandio.github.io/portfolio/","jobTitle":"AI Learner · Content Creator · Developer","description":"Independent AI learner, content creator and developer — films, channels and systems that run themselves.","image":"https://adil-chandio.github.io/portfolio/assets/thumbs/th-power.jpg","sameAs":["https://www.tiktok.com/@adil.chandiio","https://www.instagram.com/adill.chandio","https://github.com/adil-chandio"]}
+</script>
 <link rel="preload" href="assets/fonts/Manrope-800.ttf" as="font" type="font/ttf" crossorigin>
-<link rel="stylesheet" href="assets/styles.css?v=39">
+<link rel="stylesheet" href="assets/styles.css?v=40">
 <link rel="stylesheet" href="assets/rebuild.css?v=5">
 <link rel="stylesheet" href="assets/assistant.css?v=1">
 <link rel="stylesheet" href="assets/world.css?v=1">
@@ -180,26 +185,30 @@
         <h2>SELECTED<br><em>WORK</em></h2>
       </div>
       <nav class="lw-idx" aria-label="Work index">
-        <a href="#work"><i>01</i><span>FILMS — THE MAIN REEL</span><b>↓</b></a>
-        <a href="https://github.com/adil-chandio/portfolio/tree/main/concierge-api" target="_blank" rel="noopener"><i>02</i><span>SITES — THIS ONE &amp; CONCIERGE</span><b>↗</b></a>
-        <a href="#proof"><i>03</i><span>AUTOMATION — THE YT RIG</span><b>↓</b></a>
-        <a href="mailto:workadilchandio@gmail.com?subject=3D%20RENDER%20REEL%20—%20MONARCH"><i>04</i><span>3D — RENDER REEL ON REQUEST</span><b>↗</b></a>
+        <a href="#work"><i>01</i><span>FILMS — THE MAIN REEL</span><em class="lw-yr">2026</em><b>↓</b></a>
+        <a href="https://github.com/adil-chandio/portfolio/tree/main/concierge-api" target="_blank" rel="noopener"><i>02</i><span>SITES — THIS ONE &amp; CONCIERGE</span><em class="lw-yr">2026</em><b>↗</b></a>
+        <a href="#proof"><i>03</i><span>AUTOMATION — THE YT RIG</span><em class="lw-yr">2024→</em><b>↓</b></a>
+        <a href="mailto:workadilchandio@gmail.com?subject=3D%20RENDER%20REEL%20—%20MONARCH"><i>04</i><span>3D — RENDER REEL ON REQUEST</span><em class="lw-yr">OPEN</em><b>↗</b></a>
       </nav>
     </div>
     <div class="lw-covers">
       <button class="lw-card" type="button" data-src="media/monarch-portfolio-v5.mp4" data-title="MONARCH — THE MAIN FILM" data-wide="1">
+        <span class="lw-tape">CASE 01 — FILM · 37S</span>
         <figure><img class="lw-img" src="assets/thumbs/th-power.jpg?v=64" alt="MONARCH main portfolio film — the M4" loading="lazy">
           <figcaption><b>MONARCH — THE MAIN FILM</b><span>01 / 37S</span></figcaption></figure>
       </button>
       <button class="lw-card" type="button" data-src="media/monarch-reference-06-enhanced.mp4" data-title="MONARCH OS">
+        <span class="lw-tape">CASE 02 — FILM</span>
         <figure><img class="lw-img" src="assets/thumbs/monarch-06.jpg" alt="MONARCH OS film still" loading="lazy">
           <figcaption><b>MONARCH OS</b><span>02 / FILM</span></figcaption></figure>
       </button>
       <button class="lw-card" type="button" data-src="media/lawone.web.mp4" data-title="MONARCH: LAW ONE">
+        <span class="lw-tape">CASE 03 — LAW</span>
         <figure><img class="lw-img" src="assets/thumbs/th-lawone.jpg?v=64" alt="Monarch Law One — law story film" loading="lazy">
           <figcaption><b>MONARCH: LAW ONE</b><span>03 / LAW</span></figcaption></figure>
       </button>
       <button class="lw-card" type="button" data-src="media/monarch-reference-07-enhanced.mp4" data-title="THE VISION" data-wide="1">
+        <span class="lw-tape">CASE 04 — VISION</span>
         <figure><img class="lw-img" src="assets/thumbs/monarch-07.jpg" alt="The Vision — MONARCH film still" loading="lazy">
           <figcaption><b>THE VISION</b><span>04 / VISION</span></figcaption></figure>
       </button>
@@ -289,6 +298,7 @@
   <section id="chGallery" class="gl-runway" aria-label="The hall — MONARCH film archive">
     <div class="gal-ui">
       <p class="gal-hint">SCROLL — WALK THE HALL</p>
+      <p class="gal-count" id="galCount" aria-hidden="true"><b>01</b> <i>/</i> 10</p>
       <div class="gal-label">
         <span class="gal-idx" id="galIdx">01</span>
         <b class="gal-title" id="galTitle">MONARCH — THE MAIN FILM</b>
@@ -489,7 +499,7 @@
 <script src="assets/rebuild.js?v=4" defer></script>
 <script src="assets/main.js?v=39" defer></script>
 <script src="assets/three.min.js?v=1" defer></script>
-<script src="assets/world.js?v=1" defer></script>
+<script src="assets/world.js?v=2" defer></script>
 <script>window.MQ_API_URL = 'https://monarch-concierge-api.vercel.app/api/chat';</script>
 <script src="assets/assistant.js?v=9" defer></script>
 </body>

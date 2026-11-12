@@ -31,7 +31,8 @@
     renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, powerPreference: 'high-performance' });
   } catch (e) { failSoft(); return; }
 
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  var coarse = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 760;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, coarse ? 1.5 : 2));
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setClearColor(0x060606, 1);
   setProg(0.45);
@@ -234,6 +235,33 @@
     hall.add(grp);
     screenMeshes.push(scr);
   });
+  function makeGlowTex() {
+    var c = document.createElement('canvas'); c.width = 256; c.height = 256;
+    var g = c.getContext('2d');
+    var grad = g.createRadialGradient(128, 128, 8, 128, 128, 128);
+    grad.addColorStop(0, 'rgba(255,60,60,0.55)');
+    grad.addColorStop(0.45, 'rgba(210,31,43,0.16)');
+    grad.addColorStop(1, 'rgba(210,31,43,0)');
+    g.fillStyle = grad; g.fillRect(0, 0, 256, 256);
+    return new THREE.CanvasTexture(c);
+  }
+  var glowTex = makeGlowTex();
+  SCREENS.forEach(function (s, i) {
+    var side = (i % 2 === 0) ? 1 : -1;
+    var z = -34 - i * 7.1;
+    var glow = new THREE.Mesh(new THREE.PlaneGeometry(11, 7),
+      new THREE.MeshBasicMaterial({ map: glowTex, transparent: true, opacity: 0.85, depthWrite: false, blending: THREE.AdditiveBlending }));
+    glow.position.set(side * 7.42, 2.75, z);
+    glow.rotation.y = -side * (Math.PI / 2 - 0.46);
+    scene.add(glow);
+  });
+  var benchLedMat = new THREE.MeshBasicMaterial({ color: 0xfff1d6 });
+  [-46, -68, -90, -112].forEach(function (z) {
+    [-1.68, 1.68].forEach(function (x) {
+      var led = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.3, 1.02), benchLedMat);
+      led.position.set(x, 0.27, z); scene.add(led);
+    });
+  });
   scene.add(hall);
 
   /* gallery DOM label */
@@ -241,6 +269,7 @@
   var galTitle = document.getElementById('galTitle');
   var galMeta = document.getElementById('galMeta');
   var galActive = -1;
+  var galCount = document.getElementById('galCount');
   function updateGalleryLabel(camZ) {
     if (!galIdx || !galTitle) return;
     var idx = Math.round((-camZ - 30) / 7.1);
@@ -248,6 +277,7 @@
     if (idx !== galActive) {
       galActive = idx;
       galIdx.textContent = ('0' + (idx + 1)).slice(-2);
+      if (galCount) galCount.innerHTML = '<b>' + ('0' + (idx + 1)).slice(-2) + '</b> <i>/</i> ' + SCREENS.length;
       galTitle.textContent = SCREENS[idx].title;
       galMeta.textContent = SCREENS[idx].meta;
     }
@@ -360,6 +390,7 @@
 
   function tick() {
     requestAnimationFrame(tick);
+    if (glPaused) { tPrev = performance.now() / 1000; return; }
     var t = performance.now() / 1000;
     var dt = Math.min(0.05, t - tPrev); tPrev = t;
 
@@ -405,7 +436,7 @@
 
     /* embers in the alley */
     embers.visible = prog > 0.74;
-    if (embers.visible) {
+    if (embers.visible && !reduced) {
       var p = emberGeo.attributes.position;
       for (var i = 0; i < EMBER_N; i++) {
         var y = p.getY(i) + emberSpd[i] * dt;
@@ -421,6 +452,8 @@
 
     renderer.render(scene, camera);
   }
+  var glPaused = false;
+  document.addEventListener('visibilitychange', function () { glPaused = document.hidden; });
   tick();
 
   /* light chapter covers → same #player lightbox */
