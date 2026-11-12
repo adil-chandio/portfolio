@@ -143,33 +143,39 @@ html.no-gl body{ background:#050505; }
 .lw-idx a{ display:flex; gap:14px; color:inherit; text-decoration:none; border-bottom:1px solid rgba(16,16,16,.18); padding:8px 2px; transition:padding-left .35s ease, color .35s ease; }
 .lw-idx a:hover{ padding-left:14px; color:#c21e28; }
 .lw-idx i{ font-style:normal; color:#c21e28; }
-/* covers — CSS-perspective, the reference's "distorted work" feel */
+/* covers — editorial velocity-fisheye (transform driven per-frame by world.js) */
 .lw-covers{
-  display:grid; grid-template-columns:repeat(4, 1fr); gap:clamp(10px,1.6vw,26px);
-  perspective:1400px; margin:10px 0 0;
+  display:flex; flex-direction:column; gap:clamp(56px,9vh,110px);
+  perspective:1200px; margin:0;
 }
 .lw-card{
   position:relative; display:block; text-decoration:none; color:#101010;
-  transform:rotateY(-16deg) rotateX(5deg) translateZ(0);
-  transform-style:preserve-3d; transition:transform .6s cubic-bezier(.2,.9,.25,1);
-  cursor:pointer; background:none; border:0; padding:0; text-align:left; font:inherit;
+  transform-style:preserve-3d; cursor:pointer;
+  background:none; border:0; padding:0; text-align:left; font:inherit; width:100%;
+  will-change:transform, filter;
 }
-.lw-card:nth-child(2n){ transform:rotateY(-10deg) rotateX(7deg) translateY(26px); }
-.lw-card:nth-child(3n){ transform:rotateY(-21deg) rotateX(4deg) translateY(-8px); }
-.lw-card:hover{ transform:rotateY(0deg) rotateX(0deg) translateY(0) scale(1.03); z-index:2; }
 .lw-card figure{ margin:0; }
 .lw-card .lw-img{
-  width:100%; aspect-ratio:4/4.6; object-fit:cover; display:block;
-  background:#111; border:1px solid rgba(16,16,16,.25);
-  box-shadow:-18px 26px 60px rgba(16,16,16,.35); border-radius:2px;
+  width:100%; aspect-ratio:16/8.6; object-fit:cover; display:block;
+  background:#111; border:1px solid rgba(16,16,16,.3);
+  box-shadow:-18px 30px 70px rgba(16,16,16,.38); border-radius:2px;
 }
 .lw-card figcaption{
   display:flex; justify-content:space-between; align-items:baseline; gap:8px;
   padding:12px 2px 0; font:600 10px/1.6 "IBM Plex Mono", monospace;
   letter-spacing:.14em; text-transform:uppercase;
 }
-.lw-card figcaption b{ font-size:11px; color:#101010; }
+.lw-card figcaption b{ font-size:12px; color:#101010; }
 .lw-card figcaption span{ color:#c21e28; }
+.lw-tape{
+  position:absolute; z-index:3; top:-13px; left:6%;
+  transform:rotate(-2.4deg);
+  background:#0c0c0c; color:#f4f1ea;
+  font:600 9px/1 "IBM Plex Mono", monospace; letter-spacing:.34em;
+  padding:9px 14px 8px 16px; border-radius:2px;
+  box-shadow:0 6px 18px rgba(0,0,0,.4);
+}
+
 /* stats bar */
 .lw-stats{
   display:grid; grid-template-columns:1fr 1fr; margin-top:clamp(40px,6vh,80px);
@@ -191,6 +197,36 @@ html.no-gl body{ background:#050505; }
   .lw-idx{ min-width:0; width:100%; }
   .lw-stats{ grid-template-columns:1fr; }
   .lw-stat-group:first-child{ border-right:0; border-bottom:1.5px solid #101010; }
+}
+
+/* ── CH · LIGHT SELECTED WORK — editorial split (v4) ── */
+.lw-ed{
+  display:grid; grid-template-columns:minmax(250px,340px) 1fr;
+  gap:clamp(28px,4vw,72px); align-items:start; position:relative; z-index:1;
+}
+.lw-rail{
+  position:sticky; top:clamp(84px,12vh,140px);
+  display:flex; flex-direction:column; justify-content:space-between;
+  min-height:66vh; gap:34px;
+}
+.lw-rail-note{
+  margin:0; font:600 10px/2.1 "IBM Plex Mono", monospace; letter-spacing:.34em;
+  color:rgba(16,16,16,.5); text-transform:uppercase;
+  border-left:2px solid #c21e28; padding-left:14px;
+}
+@media (max-width:1024px){
+  .lw-ed{ grid-template-columns:1fr; }
+  .lw-rail{ position:static; min-height:0; flex-direction:row; align-items:flex-end; flex-wrap:wrap; }
+  .lw-rail-note{ display:none; }
+}
+@media (max-width:860px){
+  .lw-ed{ grid-template-columns:1fr; gap:40px; }
+  .lw-rail{ flex-direction:column; align-items:flex-start; }
+}
+
+#wipeFx{
+  position:fixed; inset:0; z-index:60; width:100vw; height:100vh;
+  pointer-events:none; display:block;
 }
 
 /* ── CH · GL GALLERY RUNWAY ("THE HALL") ─────────────────────── */
@@ -358,3 +394,134 @@ html.no-gl .alley{ background:radial-gradient(130% 110% at 50% 100%, #2a0803 0%,
 
 /* hero name: hot red halo */
 .glh-name{ text-shadow:0 0 90px rgba(255,43,54,.3); }
+
+/* ══════════ v4 — THE CINEMATIC REBUILD ══════════ */
+
+/* ── CH · FACTORY — the dark machine hall ABOUT ─────────────── */
+.ch-factory{
+  position:relative; min-height:118vh; background:transparent; overflow:hidden;
+  padding:clamp(96px,13vh,160px) clamp(18px,5vw,80px) clamp(70px,9vh,120px);
+}
+.fac-hint{
+  margin:0 0 14px; font:600 10px/1 "IBM Plex Mono", monospace;
+  letter-spacing:.44em; color:rgba(110,255,160,.66); text-transform:uppercase;
+}
+.fac-title{
+  margin:0 0 clamp(28px,5vh,54px); font-family:Manrope, sans-serif; font-weight:800;
+  font-size:clamp(3.6rem,13vw,9.6rem); line-height:.88; letter-spacing:-.03em;
+  color:#eafff0; text-transform:uppercase; text-shadow:0 0 90px rgba(43,255,112,.22);
+}
+.fac-title span{ color:#2bff70; text-shadow:0 0 46px rgba(43,255,112,.55); }
+.term{
+  position:relative; max-width:1080px; border-radius:12px; overflow:hidden;
+  border:1px solid rgba(64,255,148,.34);
+  background:linear-gradient(180deg, rgba(8,16,12,.9), rgba(4,9,7,.93));
+  box-shadow:0 0 0 1px rgba(0,0,0,.55), 0 34px 90px rgba(0,0,0,.62), inset 0 0 90px rgba(43,255,112,.05);
+  backdrop-filter:blur(9px); -webkit-backdrop-filter:blur(9px);
+}
+.term::after{
+  content:""; position:absolute; inset:0; pointer-events:none; z-index:4;
+  background:repeating-linear-gradient(0deg, rgba(255,255,255,.03) 0 1px, transparent 1px 4px);
+  mix-blend-mode:overlay;
+}
+.term-bar{
+  display:flex; align-items:center; gap:8px;
+  padding:12px 18px; border-bottom:1px solid rgba(64,255,148,.22);
+  background:rgba(6,12,9,.85);
+}
+.term-bar i{ width:11px; height:11px; border-radius:50%; background:#3a4a3f; }
+.term-bar i:nth-child(1){ background:#ff5f57; }
+.term-bar i:nth-child(2){ background:#febc2e; }
+.term-bar i:nth-child(3){ background:#28c840; }
+.term-bar span{
+  margin-left:12px; font:600 10px/1 "IBM Plex Mono", monospace; letter-spacing:.18em;
+  color:rgba(150,255,190,.55);
+}
+.ch-factory .about-grid{
+  position:relative; z-index:1; display:flex; flex-direction:column;
+  gap:clamp(18px,2.6vh,30px); padding:clamp(22px,3.4vh,40px) clamp(18px,3.6vw,44px) clamp(24px,3.8vh,44px);
+}
+.term-line{
+  margin:0; font:600 11px/1.4 "IBM Plex Mono", monospace; letter-spacing:.12em;
+  color:#3dff8a; text-shadow:0 0 14px rgba(61,255,138,.4);
+}
+.term-caret{ animation:termBlink 1.05s steps(1) infinite; }
+@keyframes termBlink{ 0%,60%{ opacity:1 } 61%,100%{ opacity:0 } }
+.ch-factory .about-lede{
+  margin:0; max-width:62ch; color:#d9ffe6;
+  font:400 clamp(15px,1.5vw,18px)/1.75 Manrope, sans-serif;
+}
+.ch-factory .about-lede::selection{ background:#2bff70; color:#04120a; }
+.ch-factory .about-body{
+  margin:0; max-width:60ch; color:rgba(217,255,230,.72);
+  font:400 clamp(13.5px,1.35vw,16px)/1.75 Manrope, sans-serif;
+}
+.ch-factory .quote{
+  margin:6px 0 0; padding:18px 22px; max-width:640px;
+  border-left:3px solid #2bff70; background:rgba(43,255,112,.05); border-radius:0 8px 8px 0;
+}
+.ch-factory .quote p{ margin:0; color:#c9ffd9; font:400 15px/1.8 Manrope, sans-serif; }
+.ch-factory .quote em{ color:#2bff70; font-style:normal; text-shadow:0 0 12px rgba(43,255,112,.5); }
+.ch-factory .q-gloss{ margin-top:12px !important; color:rgba(150,255,190,.55) !important; font-size:9.5px !important; line-height:1.9 !important; letter-spacing:.14em; }
+.ch-factory .timeline{
+  list-style:none; margin:0; padding:0; display:grid;
+  grid-template-columns:repeat(3, 1fr); gap:14px;
+}
+.ch-factory .timeline li{
+  border:1px solid rgba(64,255,148,.22); border-radius:8px;
+  padding:18px 18px 20px; background:rgba(9,17,13,.55);
+}
+.ch-factory .timeline b{
+  display:block; font:800 clamp(1.6rem,3vw,2.4rem)/1 Manrope, sans-serif;
+  color:#2bff70; letter-spacing:-.02em; margin-bottom:10px;
+  text-shadow:0 0 22px rgba(43,255,112,.45);
+}
+.ch-factory .timeline h4{
+  margin:0 0 8px; font:600 10px/1.3 "IBM Plex Mono", monospace; letter-spacing:.3em;
+  color:#eafff0; text-transform:uppercase;
+}
+.ch-factory .timeline p{ margin:0; font:400 12px/1.65 Manrope, sans-serif; color:rgba(217,255,230,.62); }
+.ch-factory .sig-img{
+  height:76px; width:auto; align-self:flex-start;
+  background:#f4f1ea; padding:10px 16px; border-radius:6px;
+  box-shadow:0 10px 30px rgba(0,0,0,.45);
+}
+.ch-factory .sig-cap{ margin:0; color:rgba(150,255,190,.55); letter-spacing:.26em; font-size:9px; }
+.ch-factory .letter-card{
+  text-align:left; cursor:pointer; display:block; max-width:520px;
+  background:#0c130e; border:1px solid rgba(64,255,148,.4); border-radius:10px;
+  padding:22px 24px; color:#eafff0; position:relative; z-index:1;
+  transition:transform .35s ease, border-color .35s ease, box-shadow .35s ease;
+}
+.ch-factory .letter-card:hover{
+  transform:translateY(-4px); border-color:#2bff70;
+  box-shadow:0 18px 50px rgba(43,255,112,.14);
+}
+.ch-factory .seal{
+  position:absolute; top:-16px; right:20px; width:46px; height:46px; border-radius:50%;
+  background:#c21e28; color:#fff; font:800 20px/46px Manrope, sans-serif; text-align:center;
+  box-shadow:0 6px 18px rgba(194,30,40,.5);
+}
+.ch-factory .lt-kick{ color:#2bff70; font-size:9px; letter-spacing:.3em; margin:0 0 12px; }
+.ch-factory .lt-title{ margin:0 0 10px; font:800 26px/1.1 Manrope, sans-serif; color:#fff; text-transform:none; letter-spacing:-.01em; }
+.ch-factory .lt-tease{ margin:0 0 14px; font:400 13px/1.65 Manrope, sans-serif; color:rgba(234,255,240,.66); }
+.ch-factory .lt-open{ margin:0; color:#f2efe6; font-size:10px; letter-spacing:.34em; border-top:1px solid rgba(64,255,148,.25); padding-top:12px; }
+@media (max-width:900px){
+  .ch-factory{ min-height:0; }
+  .ch-factory .timeline{ grid-template-columns:1fr; }
+  .fac-title{ font-size:clamp(3rem,17vw,5rem); }
+}
+html.no-gl .ch-factory{ background:radial-gradient(130% 100% at 30% 15%, #07130c 0%, #040906 78%); }
+
+/* ── gallery ROLE icon row — the reference's five-tool glyph strip ── */
+.gal-icons{ display:flex; gap:16px; margin-top:18px; color:rgba(242,239,230,.72); }
+.gal-icons svg{ width:21px; height:21px; display:block; }
+
+/* ── ALLEY + WHO finale flourishes (v4) ──────────────────────── */
+.alley-mail{ text-shadow:0 0 34px rgba(255,60,30,.5); }
+.alley-btn{ backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px); }
+.who h2 span{ text-shadow:0 0 40px rgba(110,168,255,.55); }
+
+@media (prefers-reduced-motion: reduce){
+  .term-caret{ animation:none; }
+}
