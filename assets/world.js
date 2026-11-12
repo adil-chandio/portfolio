@@ -32,7 +32,8 @@
   } catch (e) { failSoft(); return; }
 
   var coarse = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 760;
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, coarse ? 1.5 : 2));
+  var lite = coarse || (navigator.hardwareConcurrency || 8) <= 4;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, lite ? 1.25 : 2));
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setClearColor(0x060606, 1);
   setProg(0.45);
@@ -184,14 +185,15 @@
   var coneGeo = new THREE.ConeGeometry(2.3, 6.3, 18, 1, true);
   var coneMat = new THREE.MeshBasicMaterial({ map: coneTex, transparent: true, opacity: 0.3, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide });
   var poolGeo = new THREE.PlaneGeometry(5.4, 4.0);
-  for (var cz = -38; cz >= -88; cz -= 14.2) {
+  var coneCount = 0;
+  for (var cz = -38; cz >= -88 && coneCount < (lite ? 2 : 4); cz -= 14.2) {
     var cone = new THREE.Mesh(coneGeo, coneMat);
-    cone.position.set(0, 3.95, cz); scene.add(cone);
+    cone.position.set(0, 3.95, cz); scene.add(cone); coneCount++;
     var pool = new THREE.Mesh(poolGeo, new THREE.MeshBasicMaterial({ map: poolTex, transparent: true, opacity: 0.6, depthWrite: false, blending: THREE.AdditiveBlending }));
     pool.rotation.x = -Math.PI / 2; pool.position.set(0, 0.02, cz); scene.add(pool);
   }
   /* dust motes drifting through the shafts */
-  var DUST_N = 90, dustPos = new Float32Array(DUST_N * 3), dustSpd = new Float32Array(DUST_N);
+  var DUST_N = lite ? 0 : 90, dustPos = new Float32Array(Math.max(1, DUST_N) * 3), dustSpd = new Float32Array(Math.max(1, DUST_N));
   for (var di = 0; di < DUST_N; di++) {
     dustPos[di * 3] = (Math.random() - 0.5) * 12;
     dustPos[di * 3 + 1] = Math.random() * 6.4;
@@ -203,7 +205,7 @@
   var dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({
     color: 0xfff2df, size: 0.055, map: sprite, transparent: true, opacity: 0.55,
     depthWrite: false, blending: THREE.AdditiveBlending }));
-  dust.visible = false; scene.add(dust);
+  dust.visible = false; if (DUST_N) scene.add(dust);
 
   /* ── hero: warped wireframe grid floor (the dominik bulge) ── */
   var heroGrid = (function () {
@@ -291,11 +293,19 @@
   var hall = new THREE.Group();
   var screenMeshes = [];
   var texLoader = new THREE.TextureLoader();
+  var screenTex = {};
+  function getScreenTex(img) {
+    if (!screenTex[img]) {
+      var t = texLoader.load(img);
+      if ('colorSpace' in t && THREE.SRGBColorSpace) t.colorSpace = THREE.SRGBColorSpace;
+      screenTex[img] = t;
+    }
+    return screenTex[img];
+  }
   SCREENS.forEach(function (s, i) {
     var side = (i % 2 === 0) ? 1 : -1;
     var z = -34 - i * 7.1;
-    var tex = texLoader.load(s.img);
-    if ('colorSpace' in tex && THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
+    var tex = getScreenTex(s.img);
     var mat = new THREE.MeshBasicMaterial({ map: tex, color: 0xffffff });
     var frame = new THREE.Mesh(new THREE.BoxGeometry(5.15, 3.15, 0.1), new THREE.MeshBasicMaterial({ color: 0x0d0d12 }));
     var scr = new THREE.Mesh(new THREE.PlaneGeometry(4.8, 2.8), mat);
@@ -339,9 +349,7 @@
   SCREENS.forEach(function (s, i) {
     var side = (i % 2 === 0) ? 1 : -1;
     var z = -34 - i * 7.1;
-    var img = s.img;
-    var tex = reflTexLoader.load(img);
-    if ('colorSpace' in tex && THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
+    var tex = getScreenTex(s.img);   /* same texture object — zero extra GPU cost */
     var refl = new THREE.Mesh(new THREE.PlaneGeometry(4.8, 2.8),
       new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0.22, depthWrite: false }));
     refl.position.set(side * 6.35, -1.35, z);
@@ -495,8 +503,8 @@
     camera.lookAt(camX * 0.45, 2.02, camZ - 9);
     if (!reduced) {
       camera.rotateZ(Math.sin(prog * Math.PI * 2.3) * 0.011 + Math.sin(t * 0.5) * 0.0025);
-      camera.fov = 56 + Math.sin(prog * Math.PI * 2) * 1.7 + Math.sin(t * 0.42) * 0.35;
-      camera.updateProjectionMatrix();
+      var fov = 56 + Math.sin(prog * Math.PI * 2) * 1.7 + Math.sin(t * 0.42) * 0.35;
+      if (Math.abs(fov - camera.fov) > 0.001) { camera.fov = fov; camera.updateProjectionMatrix(); }
     }
 
     /* atmosphere from keyframes */

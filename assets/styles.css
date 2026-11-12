@@ -897,8 +897,8 @@ html{scrollbar-width:thin;scrollbar-color:#e3202f #0a0a0b}
 
 /* ══════════ v6 — TEXT GRADE + CINEMATIC ENV ══════════ */
 
-/* subtle cinema grade on the WebGL world itself */
-#gl{filter:saturate(1.06) contrast(1.03)}
+/* cinema grade lives inside the WebGL pipeline (ACES), not on the canvas element —
+   a CSS filter on a fullscreen canvas forces a full extra pass every frame */
 
 /* balanced display line-wrapping — pro typography hygiene */
 h1,h2{text-wrap:balance}
