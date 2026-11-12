@@ -6,7 +6,7 @@
 
 :root{
   /* MONARCH void theme — the page IS the black the cursors paint from. */
-  --ink:#ece9e2; --ink2:#111113; --paper:#050507; --paper2:#0d0d0f;
+  --ink:#efebe2; --ink2:#111113; --paper:#050507; --paper2:#0d0d0f;
   --red:#e3202f; --blue:#0a5ea3; --mut:#b8b4aa; --mut-d:#8f8c85;
   --line:#26262a; --surface:#0a0a0b; --surface2:#17171a;
   --pad:clamp(20px,5vw,72px);
@@ -14,7 +14,7 @@
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth;overflow-x:hidden}
-body{font-family:'Manrope',system-ui,sans-serif;background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased;overflow-x:hidden;max-width:100%}
+body{font-family:'Manrope',system-ui,sans-serif;background:radial-gradient(130% 100% at 50% -12%, #0a0a0e 0%, #050507 58%) fixed, var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased;overflow-x:hidden;max-width:100%}
 main,footer{overflow-x:clip;max-width:100%}
 body.locked{overflow:hidden}
 img{display:block;max-width:100%}
@@ -894,3 +894,41 @@ html{scrollbar-width:thin;scrollbar-color:#e3202f #0a0a0b}
   #grain,.marquee-track,.alley-kick::before,.glh-status i,.glh-cue::after{animation:none !important}
   html{scroll-behavior:auto}
 }
+
+/* ══════════ v6 — TEXT GRADE + CINEMATIC ENV ══════════ */
+
+/* subtle cinema grade on the WebGL world itself */
+#gl{filter:saturate(1.06) contrast(1.03)}
+
+/* balanced display line-wrapping — pro typography hygiene */
+h1,h2{text-wrap:balance}
+
+/* hero wordmark — brushed-metal cream gradient (depth, not flat white) */
+.glh-name{
+  background:linear-gradient(178deg,#fdfcf7 22%,#eae7de 52%,#cfccc0 78%,#a9a69c 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  text-shadow:none;
+}
+.glh-name .ol{
+  background:none;color:transparent;
+  -webkit-text-stroke:1.6px rgba(247,245,238,.9);text-stroke:1.6px rgba(247,245,238,.9);
+  text-shadow:none;
+}
+
+/* big numerals carry a machined gradient on both light + dark chapters */
+.stats b,.lw-stat b{
+  background:linear-gradient(180deg,#ffffff 18%,#e6e3da 55%,#b9b6ac 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.lw-stat b{background:linear-gradient(180deg,#191919 22%,#3d3d3d 88%);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* dark sections — heat aura behind the display type */
+.section.dark .sec-title{text-shadow:0 0 70px rgba(255,43,54,.22)}
+
+/* proof lede em gets the hot accent properly */
+.proof-lede em{font-style:normal;color:#fff;text-shadow:0 0 22px rgba(255,43,54,.35)}
+
+/* warm paper depth for the light chapter */
+.lw{background:linear-gradient(180deg,#f7f4ec 0%,#f1eee5 100%)}
+
+/* kill over-bright white: gate + nav ink settled to the new token automatically */

@@ -36,9 +36,11 @@
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setClearColor(0x060606, 1);
   setProg(0.45);
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.18;
 
   var scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(0x060606, 14, 88);
+  scene.fog = new THREE.Fog(0x060606, 12, 84);
 
   var camera = new THREE.PerspectiveCamera(56, window.innerWidth / window.innerHeight, 0.1, 400);
   camera.position.set(0, 1.72, 12);
@@ -55,6 +57,40 @@
     var t = new THREE.CanvasTexture(c); return t;
   }
   var sprite = makeSprite();
+  /* warm halo for the portrait collar (the reference's ring of light) */
+  function makeHaloTex() {
+    var c = document.createElement('canvas'); c.width = c.height = 128;
+    var g = c.getContext('2d');
+    var grad = g.createRadialGradient(64, 64, 6, 64, 64, 64);
+    grad.addColorStop(0, 'rgba(255,244,225,0.9)');
+    grad.addColorStop(0.35, 'rgba(255,224,190,0.32)');
+    grad.addColorStop(1, 'rgba(255,220,180,0)');
+    g.fillStyle = grad; g.fillRect(0, 0, 128, 128);
+    return new THREE.CanvasTexture(c);
+  }
+  var haloTex = makeHaloTex();
+  function makeConeTex() {
+    var c = document.createElement('canvas'); c.width = 64; c.height = 256;
+    var g = c.getContext('2d');
+    var grad = g.createLinearGradient(0, 0, 0, 256);
+    grad.addColorStop(0, 'rgba(255,255,255,0.6)');
+    grad.addColorStop(0.75, 'rgba(255,255,255,0.07)');
+    grad.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = grad; g.fillRect(0, 0, 64, 256);
+    return new THREE.CanvasTexture(c);
+  }
+  var coneTex = makeConeTex();
+  function makePoolTex() {
+    var c = document.createElement('canvas'); c.width = c.height = 128;
+    var g = c.getContext('2d');
+    var grad = g.createRadialGradient(64, 64, 4, 64, 64, 64);
+    grad.addColorStop(0, 'rgba(255,238,214,0.75)');
+    grad.addColorStop(0.55, 'rgba(255,232,205,0.18)');
+    grad.addColorStop(1, 'rgba(255,232,205,0)');
+    g.fillStyle = grad; g.fillRect(0, 0, 128, 128);
+    return new THREE.CanvasTexture(c);
+  }
+  var poolTex = makePoolTex();
 
   /* ── canvas textures: grid floor + wall panels ────────────── */
   function makeGridTex() {
@@ -135,6 +171,39 @@
     b.position.set(0, 0.27, z); corridor.add(b);
   });
   scene.add(corridor);
+  /* emissive halo planes hugging the red strips — the tube glow */
+  var stripGlowMat = new THREE.MeshBasicMaterial({ map: haloTex, color: 0xff5a4a, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide });
+  [2.35, 4.7].forEach(function (y) {
+    [-7.36, 7.36].forEach(function (x) {
+      var glow = new THREE.Mesh(new THREE.PlaneGeometry(300, 0.9), stripGlowMat);
+      glow.rotation.y = Math.PI / 2; glow.position.set(x, y, -96);
+      scene.add(glow);
+    });
+  });
+  /* volumetric light shafts + warm pools on the grid floor */
+  var coneGeo = new THREE.ConeGeometry(2.3, 6.3, 18, 1, true);
+  var coneMat = new THREE.MeshBasicMaterial({ map: coneTex, transparent: true, opacity: 0.3, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide });
+  var poolGeo = new THREE.PlaneGeometry(5.4, 4.0);
+  for (var cz = -38; cz >= -88; cz -= 14.2) {
+    var cone = new THREE.Mesh(coneGeo, coneMat);
+    cone.position.set(0, 3.95, cz); scene.add(cone);
+    var pool = new THREE.Mesh(poolGeo, new THREE.MeshBasicMaterial({ map: poolTex, transparent: true, opacity: 0.6, depthWrite: false, blending: THREE.AdditiveBlending }));
+    pool.rotation.x = -Math.PI / 2; pool.position.set(0, 0.02, cz); scene.add(pool);
+  }
+  /* dust motes drifting through the shafts */
+  var DUST_N = 90, dustPos = new Float32Array(DUST_N * 3), dustSpd = new Float32Array(DUST_N);
+  for (var di = 0; di < DUST_N; di++) {
+    dustPos[di * 3] = (Math.random() - 0.5) * 12;
+    dustPos[di * 3 + 1] = Math.random() * 6.4;
+    dustPos[di * 3 + 2] = -8 - Math.random() * 76;
+    dustSpd[di] = 0.08 + Math.random() * 0.16;
+  }
+  var dustGeo = new THREE.BufferGeometry();
+  dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3));
+  var dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({
+    color: 0xfff2df, size: 0.055, map: sprite, transparent: true, opacity: 0.55,
+    depthWrite: false, blending: THREE.AdditiveBlending }));
+  dust.visible = false; scene.add(dust);
 
   /* ── hero: warped wireframe grid floor (the dominik bulge) ── */
   var heroGrid = (function () {
@@ -200,6 +269,10 @@
     };
     img.src = 'assets/portrait-masked.png';
   })();
+  var collar = new THREE.Mesh(new THREE.PlaneGeometry(9.6, 4.2),
+    new THREE.MeshBasicMaterial({ map: haloTex, transparent: true, opacity: 0.8, depthWrite: false, blending: THREE.AdditiveBlending }));
+  collar.position.set(0, -2.1, -0.9);
+  portrait.add(collar);
   scene.add(portrait);
 
   /* ── gallery: floating screens, click = play the film ─────── */
@@ -261,6 +334,20 @@
       var led = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.3, 1.02), benchLedMat);
       led.position.set(x, 0.27, z); scene.add(led);
     });
+  });
+  var reflTexLoader = texLoader;
+  SCREENS.forEach(function (s, i) {
+    var side = (i % 2 === 0) ? 1 : -1;
+    var z = -34 - i * 7.1;
+    var img = s.img;
+    var tex = reflTexLoader.load(img);
+    if ('colorSpace' in tex && THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
+    var refl = new THREE.Mesh(new THREE.PlaneGeometry(4.8, 2.8),
+      new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0.22, depthWrite: false }));
+    refl.position.set(side * 6.35, -1.35, z);
+    refl.rotation.y = -side * (Math.PI / 2 - 0.46);
+    refl.rotation.x = 0; refl.scale.y = -1;
+    scene.add(refl);
   });
   scene.add(hall);
 
@@ -397,6 +484,7 @@
     var maxScroll = Math.max(1, metrics.docH - metrics.vh);
     var target = Math.max(0, Math.min(1, window.scrollY / maxScroll));
     scrollCur += (target - scrollCur) * (reduced ? 1 : 0.075);
+    if (Math.abs(target - scrollCur) < 0.0005) scrollCur = target;
     var prog = scrollCur;
 
     /* camera rail */
@@ -404,7 +492,12 @@
     var camX = reduced ? 0 : Math.sin(prog * Math.PI * 4.2) * 0.72;
     var camY = 1.72 + (reduced ? 0 : Math.sin(prog * Math.PI * 3.1) * 0.14);
     camera.position.set(camX, camY, camZ);
-    camera.lookAt(camX * 0.45, 2.05, camZ - 9);
+    camera.lookAt(camX * 0.45, 2.02, camZ - 9);
+    if (!reduced) {
+      camera.rotateZ(Math.sin(prog * Math.PI * 2.3) * 0.011 + Math.sin(t * 0.5) * 0.0025);
+      camera.fov = 56 + Math.sin(prog * Math.PI * 2) * 1.7 + Math.sin(t * 0.42) * 0.35;
+      camera.updateProjectionMatrix();
+    }
 
     /* atmosphere from keyframes */
     var c = colorsAt(prog);
@@ -418,7 +511,7 @@
     /* hero zone fades */
     var heroVis = Math.max(0, Math.min(1, 1 - (-camZ) / 17));   /* 1 at hero → 0 by z=-17 */
     heroGrid.visible = heroVis > 0.02;
-    heroGrid.material.opacity = 0.5 * heroVis;
+    heroGrid.material.opacity = (0.5 + Math.sin(t * 0.8) * 0.08) * heroVis;
     corridor.visible = prog > 0.055;
     portrait.visible = heroVis > 0.02;
     if (portrait.visible) {
@@ -435,6 +528,16 @@
     }
 
     /* embers in the alley */
+    dust.visible = corridor.visible;
+    if (dust.visible && !reduced) {
+      var dp = dustGeo.attributes.position;
+      for (var dmi = 0; dmi < DUST_N; dmi++) {
+        var dy = dp.getY(dmi) - dustSpd[dmi] * dt;
+        if (dy < 0.05) dy = 6.4;
+        dp.setY(dmi, dy);
+      }
+      dp.needsUpdate = true;
+    }
     embers.visible = prog > 0.74;
     if (embers.visible && !reduced) {
       var p = emberGeo.attributes.position;
