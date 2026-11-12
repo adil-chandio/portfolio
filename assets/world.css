@@ -1,0 +1,289 @@
+/* ============================================================
+   MONARCH — WORLD v3 · WebGL scroll journey
+   Dominikfojcik-technique (scroll-scrubbed 3D chapters),
+   Adil's own assets only. Loaded after styles.css.
+   ============================================================ */
+
+/* ── Fixed GL canvas behind everything ─────────────────────── */
+#gl{
+  position:fixed; inset:0; z-index:0;
+  width:100vw; height:100vh; display:block;
+  background:#050505; pointer-events:auto;
+}
+main#top{ position:relative; z-index:1; }
+html.no-gl #gl{ display:none; }
+html.no-gl body{ background:#050505; }
+
+/* ── GL loader (sits under the intro gate, fades on ready) ──── */
+#glLoader{
+  position:fixed; inset:0; z-index:40; display:flex;
+  align-items:center; justify-content:center; flex-direction:column; gap:14px;
+  background:#050505; transition:opacity .9s ease .1s, visibility .9s ease .1s;
+}
+#glLoader.done{ opacity:0; visibility:hidden; pointer-events:none; }
+#glLoader .ld-word{
+  font:700 11px/1 "IBM Plex Mono", monospace; letter-spacing:.42em;
+  color:#d8d4c8; text-indent:.42em;
+}
+#glLoader .ld-bar{
+  width:min(240px, 56vw); height:2px; background:rgba(255,255,255,.12);
+  overflow:hidden; border-radius:2px;
+}
+#glLoader .ld-bar i{
+  display:block; height:100%; width:0%;
+  background:#ff2b36; transition:width .35s ease;
+}
+
+/* ── CH 00 · GL HERO ───────────────────────────────────────── */
+.gl-hero{
+  position:relative; height:104vh; min-height:640px;
+  display:flex; align-items:stretch; overflow:hidden;
+  background:transparent;
+}
+/* vertical left label */
+.glh-side{
+  position:absolute; left:clamp(18px,3.4vw,54px); top:50%;
+  transform:translateY(-50%);
+  writing-mode:vertical-rl; transform:translateY(-50%) rotate(180deg);
+  font:600 11px/1 "IBM Plex Mono", monospace; letter-spacing:.34em;
+  color:rgba(232,228,218,.55); white-space:nowrap; z-index:2;
+}
+.glh-side b{ color:#ff2b36; font-weight:600; }
+/* right caps block */
+.glh-caps{
+  position:absolute; right:clamp(18px,3.4vw,54px); top:22vh;
+  max-width:270px; text-align:right; z-index:2;
+  font:600 10px/1.9 "IBM Plex Mono", monospace; letter-spacing:.18em;
+  color:rgba(232,228,218,.72); text-transform:uppercase;
+}
+.glh-caps em{ color:#fff; font-style:normal; }
+/* center type block */
+.glh-core{
+  position:relative; z-index:2; align-self:flex-end;
+  padding:0 clamp(18px,4vw,72px) clamp(10vh,14vh,150px);
+  width:100%;
+}
+.glh-kick{
+  font:600 11px/1.8 "IBM Plex Mono", monospace; letter-spacing:.4em;
+  color:#ff2b36; margin-bottom:18px;
+}
+.glh-name{
+  margin:0; font-family:Manrope, sans-serif; font-weight:800;
+  font-size:clamp(4.6rem, 17.5vw, 12.5rem); line-height:.86;
+  letter-spacing:-.03em; color:#f2efe6; text-transform:uppercase;
+}
+.glh-name .ol{
+  display:block; color:transparent;
+  -webkit-text-stroke:1.6px #f2efe6; text-stroke:1.6px #f2efe6;
+}
+.glh-tag{
+  margin:26px 0 0; max-width:560px;
+  font:400 clamp(15px,1.6vw,19px)/1.55 Manrope, sans-serif;
+  color:rgba(242,239,230,.82);
+}
+.glh-tag em{ color:#fff; font-style:normal; border-bottom:2px solid #ff2b36; }
+/* bottom row: cta + status */
+.glh-row{
+  display:flex; align-items:flex-end; justify-content:space-between;
+  gap:24px; margin-top:34px; flex-wrap:wrap;
+}
+.glh-ctas{ display:flex; gap:16px; flex-wrap:wrap; }
+.glh-status{
+  font:600 10px/2 "IBM Plex Mono", monospace; letter-spacing:.22em;
+  color:rgba(232,228,218,.6); text-align:right; text-transform:uppercase;
+}
+.glh-status i{
+  display:inline-block; width:8px; height:8px; border-radius:50%;
+  background:#2bff70; margin-right:8px; vertical-align:-1px;
+  box-shadow:0 0 10px #2bff70aa; animation:glPulse 1.6s ease-in-out infinite;
+}
+@keyframes glPulse{ 0%,100%{opacity:1} 50%{opacity:.35} }
+/* scroll cue */
+.glh-cue{
+  position:absolute; left:50%; bottom:26px; transform:translateX(-50%);
+  font:600 9px/1 "IBM Plex Mono", monospace; letter-spacing:.5em;
+  color:rgba(232,228,218,.5); z-index:2; text-indent:.5em;
+}
+.glh-cue::after{
+  content:""; position:absolute; left:50%; top:150%; width:1px; height:56px;
+  background:linear-gradient(#ff2b36, transparent);
+  animation:glCue 1.8s cubic-bezier(.6,0,.2,1) infinite;
+}
+@keyframes glCue{ 0%{ transform:scaleY(0); transform-origin:top } 55%{ transform:scaleY(1); transform-origin:top } 56%{ transform-origin:bottom } 100%{ transform:scaleY(0); transform-origin:bottom } }
+
+@media (max-width:860px){
+  .gl-hero{ height:auto; min-height:100svh; padding:110px 0 90px; }
+  .glh-side{ display:none; }
+  .glh-caps{ position:static; max-width:100%; text-align:left; margin:0 clamp(18px,4vw,72px) 26px; order:-1 }
+  .gl-hero{ flex-direction:column; justify-content:center; }
+  .glh-name{ font-size:clamp(4rem,24vw,7rem); }
+  .glh-status{ display:none; }
+}
+
+/* ── CH · LIGHT "SELECTED WORK" CHAPTER ─────────────────────── */
+.lw{
+  position:relative; background:#f4f1ea; color:#101010;
+  padding:clamp(80px,12vh,150px) clamp(18px,5vw,80px) clamp(70px,9vh,120px);
+  overflow:hidden;
+}
+.lw-head{
+  display:flex; justify-content:space-between; align-items:flex-end; gap:30px;
+  border-bottom:1.5px solid #101010; padding-bottom:26px; margin-bottom:44px;
+}
+.lw-kick{ font:600 11px/1 "IBM Plex Mono", monospace; letter-spacing:.4em; color:#c21e28; margin-bottom:16px; }
+.lw h2{
+  margin:0; font-family:Manrope, sans-serif; font-weight:800; text-transform:uppercase;
+  font-size:clamp(3rem,9.4vw,7.6rem); line-height:.9; letter-spacing:-.03em; color:#101010;
+}
+.lw h2 em{ font-style:normal; color:transparent; -webkit-text-stroke:1.5px #101010; }
+.lw-idx{
+  display:flex; flex-direction:column; gap:10px; min-width:230px;
+  font:600 11px/1.5 "IBM Plex Mono", monospace; letter-spacing:.12em; color:#101010;
+}
+.lw-idx a{ display:flex; gap:14px; color:inherit; text-decoration:none; border-bottom:1px solid rgba(16,16,16,.18); padding:8px 2px; transition:padding-left .35s ease, color .35s ease; }
+.lw-idx a:hover{ padding-left:14px; color:#c21e28; }
+.lw-idx i{ font-style:normal; color:#c21e28; }
+/* covers — CSS-perspective, the reference's "distorted work" feel */
+.lw-covers{
+  display:grid; grid-template-columns:repeat(4, 1fr); gap:clamp(10px,1.6vw,26px);
+  perspective:1400px; margin:10px 0 0;
+}
+.lw-card{
+  position:relative; display:block; text-decoration:none; color:#101010;
+  transform:rotateY(-16deg) rotateX(5deg) translateZ(0);
+  transform-style:preserve-3d; transition:transform .6s cubic-bezier(.2,.9,.25,1);
+  cursor:pointer; background:none; border:0; padding:0; text-align:left; font:inherit;
+}
+.lw-card:nth-child(2n){ transform:rotateY(-10deg) rotateX(7deg) translateY(26px); }
+.lw-card:nth-child(3n){ transform:rotateY(-21deg) rotateX(4deg) translateY(-8px); }
+.lw-card:hover{ transform:rotateY(0deg) rotateX(0deg) translateY(0) scale(1.03); z-index:2; }
+.lw-card figure{ margin:0; }
+.lw-card .lw-img{
+  width:100%; aspect-ratio:4/4.6; object-fit:cover; display:block;
+  background:#111; border:1px solid rgba(16,16,16,.25);
+  box-shadow:-18px 26px 60px rgba(16,16,16,.35); border-radius:2px;
+}
+.lw-card figcaption{
+  display:flex; justify-content:space-between; align-items:baseline; gap:8px;
+  padding:12px 2px 0; font:600 10px/1.6 "IBM Plex Mono", monospace;
+  letter-spacing:.14em; text-transform:uppercase;
+}
+.lw-card figcaption b{ font-size:11px; color:#101010; }
+.lw-card figcaption span{ color:#c21e28; }
+/* stats bar */
+.lw-stats{
+  display:grid; grid-template-columns:1fr 1fr; margin-top:clamp(40px,6vh,80px);
+  border:1.5px solid #101010;
+}
+.lw-stat-group{ padding:22px 26px; }
+.lw-stat-group:first-child{ border-right:1.5px solid #101010; }
+.lw-stat-group h3{
+  margin:0 0 14px; font:600 10px/1 "IBM Plex Mono", monospace;
+  letter-spacing:.4em; color:#c21e28;
+}
+.lw-stat-row{ display:flex; gap:clamp(18px,3vw,44px); flex-wrap:wrap; }
+.lw-stat b{ display:block; font:800 clamp(1.6rem,3.4vw,2.6rem)/1 Manrope, sans-serif; letter-spacing:-.02em; }
+.lw-stat span{ font:600 9px/1.6 "IBM Plex Mono", monospace; letter-spacing:.14em; color:rgba(16,16,16,.62); text-transform:uppercase; }
+
+@media (max-width:1024px){ .lw-covers{ grid-template-columns:repeat(2,1fr); } .lw-card, .lw-card:nth-child(2n), .lw-card:nth-child(3n){ transform:none; } }
+@media (max-width:860px){
+  .lw-head{ flex-direction:column; align-items:flex-start; }
+  .lw-idx{ min-width:0; width:100%; }
+  .lw-stats{ grid-template-columns:1fr; }
+  .lw-stat-group:first-child{ border-right:0; border-bottom:1.5px solid #101010; }
+}
+
+/* ── CH · GL GALLERY RUNWAY ("THE HALL") ─────────────────────── */
+.gl-runway{
+  position:relative; height:260vh; min-height:1500px;
+  background:transparent; pointer-events:none; /* clicks fall through to canvas */
+}
+.gal-ui{
+  position:sticky; top:0; height:100vh; display:flex; flex-direction:column;
+  justify-content:flex-end; padding:0 clamp(18px,4vw,64px) clamp(34px,6vh,70px);
+  pointer-events:none;
+}
+.gal-hint{
+  position:absolute; top:16vh; left:50%; transform:translateX(-50%);
+  font:600 10px/1 "IBM Plex Mono", monospace; letter-spacing:.5em; color:rgba(232,228,218,.66);
+  animation:glHintBob 2.2s ease-in-out infinite; white-space:nowrap;
+}
+@keyframes glHintBob{ 0%,100%{ transform:translate(-50%,0) } 50%{ transform:translate(-50%,12px) } }
+.gal-label{ display:flex; align-items:baseline; gap:22px; }
+.gal-idx{
+  font:800 clamp(2.6rem,6vw,4.6rem)/1 Manrope, sans-serif; color:transparent;
+  -webkit-text-stroke:1.4px #f2efe6; letter-spacing:-.02em;
+}
+.gal-title{
+  font:800 clamp(1.15rem,2.2vw,1.8rem)/1.15 Manrope, sans-serif; color:#f2efe6;
+  text-transform:uppercase; letter-spacing:.01em; max-width:560px;
+}
+.gal-meta{ font:600 10px/1.8 "IBM Plex Mono", monospace; letter-spacing:.26em; color:#ff2b36; white-space:nowrap; }
+.gal-foot{
+  margin-top:14px; font:600 9px/1.8 "IBM Plex Mono", monospace; letter-spacing:.3em;
+  color:rgba(232,228,218,.5); text-transform:uppercase;
+}
+
+/* ── CH · WHO (blue corridor chapter) ─────────────────────────── */
+.who{
+  position:relative; min-height:96vh; background:transparent;
+  display:flex; align-items:center; padding:120px clamp(18px,5vw,80px);
+}
+.who-inner{ display:grid; grid-template-columns:1.05fr .95fr; gap:clamp(30px,5vw,90px); width:100%; max-width:1400px; }
+.who-kick{ font:600 11px/1 "IBM Plex Mono", monospace; letter-spacing:.4em; color:#6ea8ff; margin-bottom:20px; }
+.who h2{
+  margin:0; font-family:Manrope, sans-serif; font-weight:800; text-transform:uppercase;
+  font-size:clamp(2.4rem,6.4vw,4.9rem); line-height:.95; letter-spacing:-.02em; color:#eef2ff;
+}
+.who h2 span{ color:#6ea8ff; }
+.who-body{ margin-top:26px; max-width:520px; color:rgba(238,242,255,.78); font:400 16px/1.7 Manrope, sans-serif; }
+.who-body b{ color:#fff; }
+.who-learn{ display:inline-block; margin-top:30px; font:600 11px/1 "IBM Plex Mono", monospace; letter-spacing:.3em; color:#6ea8ff; text-decoration:none; border-bottom:1px solid #6ea8ff; padding-bottom:6px; }
+.who-rows{ align-self:center; display:flex; flex-direction:column; }
+.who-row{
+  display:flex; align-items:baseline; gap:22px; padding:22px 6px;
+  border-bottom:1px solid rgba(160,190,255,.18); text-decoration:none; color:#eef2ff;
+  transition:background .3s ease, padding-left .3s ease;
+}
+.who-row:first-child{ border-top:1px solid rgba(160,190,255,.18); }
+.who-row:hover{ background:rgba(110,168,255,.06); padding-left:18px; }
+.who-row i{ font:600 10px/1 "IBM Plex Mono", monospace; color:#6ea8ff; letter-spacing:.2em; }
+.who-row div b{ display:block; font:800 19px/1.25 Manrope, sans-serif; letter-spacing:.01em; text-transform:uppercase; }
+.who-row div span{ font:400 13px/1.5 Manrope, sans-serif; color:rgba(238,242,255,.6); }
+@media (max-width:860px){ .who-inner{ grid-template-columns:1fr; } }
+
+/* ── CH · ALLEY (red corridor finale, before the form) ────────── */
+.alley{
+  position:relative; min-height:96vh; background:transparent; overflow:hidden;
+  display:flex; align-items:center; justify-content:center; text-align:center;
+  padding:110px 18px;
+}
+.alley::after{
+  content:""; position:absolute; inset:0; z-index:0;
+  background:radial-gradient(120% 90% at 50% 108%, rgba(5,1,0,0) 0%, rgba(5,1,0,.38) 60%, rgba(5,1,0,.72) 100%);
+  pointer-events:none;
+}
+.alley-in{ position:relative; z-index:1; }
+.alley-kick{ font:600 11px/1 "IBM Plex Mono", monospace; letter-spacing:.46em; color:#ff5a3d; margin-bottom:26px; }
+.alley h2{
+  margin:0 auto; max-width:1200px; font-family:Manrope, sans-serif; font-weight:800;
+  text-transform:uppercase; font-size:clamp(2.6rem,8.2vw,6.6rem); line-height:.94;
+  letter-spacing:-.025em; color:#ffe9e2; text-shadow:0 0 60px rgba(255,42,26,.45);
+}
+.alley h2 .rd{ color:#ff2b36; }
+.alley-sub{ margin:26px auto 0; color:rgba(255,233,226,.75); font:400 15px/1.6 Manrope, sans-serif; max-width:440px; }
+.alley-mail{
+  display:inline-block; margin-top:30px; font:700 clamp(.95rem,2.2vw,1.3rem)/1.3 "IBM Plex Mono", monospace;
+  color:#fff; text-decoration:none; letter-spacing:.02em;
+  border-bottom:2px solid #ff2b36; padding-bottom:8px; transition:color .3s ease;
+}
+.alley-mail:hover{ color:#ff5a3d; }
+.alley-scroll{ margin-top:44px; font:600 9px/1.8 "IBM Plex Mono", monospace; letter-spacing:.44em; color:rgba(255,233,226,.55); text-transform:uppercase; }
+
+/* ── WebGL failure fallbacks ─────────────────────────────────── */
+html.no-gl .gl-hero{ background:radial-gradient(140% 110% at 50% 15%, #111014 0%, #050505 72%); }
+html.no-gl .who{ background:radial-gradient(130% 110% at 50% 0%, #0a1226 0%, #04070f 75%); }
+html.no-gl .alley{ background:radial-gradient(130% 110% at 50% 100%, #2a0803 0%, #0b0201 78%); }
+@media (prefers-reduced-motion: reduce){
+  .glh-cue::after, .glh-status i, .gal-hint{ animation:none; }
+}

@@ -20,9 +20,11 @@
 <link rel="stylesheet" href="assets/styles.css?v=39">
 <link rel="stylesheet" href="assets/rebuild.css?v=5">
 <link rel="stylesheet" href="assets/assistant.css?v=1">
-<link rel="stylesheet" href="assets/spaces.css?v=2">
+<link rel="stylesheet" href="assets/world.css?v=1">
 </head>
 <body class="locked">
+<canvas id="gl" aria-hidden="true"></canvas>
+<div id="glLoader" aria-hidden="true"><span class="ld-word">LOADING</span><span class="ld-bar"><i style="width:12%"></i></span></div>
 
 <div id="grain" aria-hidden="true"></div>
 <div id="prog" aria-hidden="true"></div>
@@ -72,41 +74,24 @@
 
 <main id="top">
 
-<!-- ══════════ 00 · MAIN HALL ══════════ -->
-<section class="scene hall-pad" id="hall" data-idx="0" data-name="ENTRY">
-  <div class="grid-floor" id="gridFloor" aria-hidden="true"></div>
-  <div class="hero-glow" aria-hidden="true"></div>
-  <div class="scene-inner">
-    <div class="entry-top">
-      <p class="entry-eye">PORTFOLIO — <b>EST. MARCH 2024</b><br>ADIL CHANDIO — MONARCH&reg; — ©2026</p>
-      <p class="entry-clock"><span id="clkSpace">--:--:--</span><br>LOCAL TIME</p>
-    </div>
-    <h1 class="entry-name" id="entryName">
-      <span class="ln">ADIL<span class="dot">.</span></span>
-      <span class="ln outline">CHANDIO</span>
-    </h1>
-    <p class="entry-tag">I turn AI into <em>films</em>, films into <em>channels</em>, and channels into systems that <em>run themselves</em>.</p>
-    <div class="entry-meta">
-      <span class="chip">AI LEARNER</span><span class="chip">CONTENT CREATOR</span><span class="chip">DEVELOPER</span><span class="chip">MOTION &amp; EDIT</span>
-    </div>
-    <div class="entry-bottom">
-      <a class="enter-cta" href="#space-portfolio" aria-label="Enter the portfolio space">
-        <span class="enter-ring"><svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="M12 4v14m0 0l-5.5-5.5M12 18l5.5-5.5" stroke="#ff2b36" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-        <span>ENTER<br>THE SPACES</span>
-      </a>
-      <nav class="dir" aria-label="The spaces">
-        <a href="#space-portfolio"><i>01</i><b>Personal Portfolio</b><span>OPEN ↗</span></a>
-        <a href="#space-video"><i>02</i><b>Video Editing</b><span>OPEN ↗</span></a>
-        <a href="#space-web"><i>03</i><b>Web Development</b><span>OPEN ↗</span></a>
-        <a href="#space-yta"><i>04</i><b>YT Automation</b><span>OPEN ↗</span></a>
-        <a href="#space-socials"><i>05</i><b>Social Media</b><span>OPEN ↗</span></a>
-        <a href="#space-render"><i>06</i><b>3D Rendering</b><span>OPEN ↗</span></a>
-        <a href="#contact"><i>07</i><b>Let&rsquo;s Talk</b><span>OPEN ↗</span></a>
-      </nav>
+<!-- ══════════ CH 00 · THE HERO (WebGL — portrait of light) ══════════ -->
+<section id="chHero" class="gl-hero" aria-label="Adil Chandio — portfolio">
+  <p class="glh-side">ADIL CHANDIO <b>//</b> PORTFOLIO</p>
+  <p class="glh-caps">INDEPENDENT <em>AI LEARNER</em>, <em>CONTENT CREATOR</em> &amp; <em>DEVELOPER</em> — BUILDING FILMS, CHANNELS AND SYSTEMS THAT RUN THEMSELVES</p>
+  <div class="glh-core">
+    <p class="glh-kick">PORTFOLIO — EST. MARCH 2024</p>
+    <h1 class="glh-name">ADIL.<span class="ol">CHANDIO</span></h1>
+    <p class="glh-tag">I turn <em>AI into films</em>, films into <em>channels</em>, and channels into systems that <em>run themselves</em>.</p>
+    <div class="glh-row">
+      <div class="glh-ctas">
+        <a class="btn-red magnet" href="#work" data-cursor="FILMS">SEE THE WORK ↓</a>
+        <a class="btn-ghost" href="#contact" data-cursor="HIRE">HIRE ME</a>
+      </div>
+      <p class="glh-status"><i></i>AVAILABLE FOR WORK<br>MONARCH® — ©2026</p>
     </div>
   </div>
+  <p class="glh-cue">SCROLL</p>
 </section>
-<div class="space-strip"><span class="ss-l"><b>◈ 01</b> — PERSONAL PORTFOLIO</span><span class="ss-r">THE MAIN REEL — EST. 2024</span></div>
 
   <!-- ── Hero ────────────────────────────────────────────────── -->
   <section class="hero" id="space-portfolio">
@@ -187,6 +172,58 @@
     <span>CAPCUT • FFMPEG • PYTHON • JAVASCRIPT • DESIGN ARENA • YOUTUBE STUDIO • GIT • MONARCH AGENTS •&nbsp;</span><span>CAPCUT • FFMPEG • PYTHON • JAVASCRIPT • DESIGN ARENA • YOUTUBE STUDIO • GIT • MONARCH AGENTS •&nbsp;</span>
   </div></div>
 
+  <!-- ══════════ CH · SELECTED WORK (light) ══════════ -->
+  <section id="chWork" class="lw" aria-label="Selected work">
+    <div class="lw-head">
+      <div>
+        <p class="lw-kick">SELECTED WORK — MAR 2024 → TODAY</p>
+        <h2>SELECTED<br><em>WORK</em></h2>
+      </div>
+      <nav class="lw-idx" aria-label="Work index">
+        <a href="#work"><i>01</i><span>FILMS — THE MAIN REEL</span><b>↓</b></a>
+        <a href="https://github.com/adil-chandio/portfolio/tree/main/concierge-api" target="_blank" rel="noopener"><i>02</i><span>SITES — THIS ONE &amp; CONCIERGE</span><b>↗</b></a>
+        <a href="#proof"><i>03</i><span>AUTOMATION — THE YT RIG</span><b>↓</b></a>
+        <a href="mailto:workadilchandio@gmail.com?subject=3D%20RENDER%20REEL%20—%20MONARCH"><i>04</i><span>3D — RENDER REEL ON REQUEST</span><b>↗</b></a>
+      </nav>
+    </div>
+    <div class="lw-covers">
+      <button class="lw-card" type="button" data-src="media/monarch-portfolio-v5.mp4" data-title="MONARCH — THE MAIN FILM" data-wide="1">
+        <figure><img class="lw-img" src="assets/thumbs/th-power.jpg?v=64" alt="MONARCH main portfolio film — the M4" loading="lazy">
+          <figcaption><b>MONARCH — THE MAIN FILM</b><span>01 / 37S</span></figcaption></figure>
+      </button>
+      <button class="lw-card" type="button" data-src="media/monarch-reference-06-enhanced.mp4" data-title="MONARCH OS">
+        <figure><img class="lw-img" src="assets/thumbs/monarch-06.jpg" alt="MONARCH OS film still" loading="lazy">
+          <figcaption><b>MONARCH OS</b><span>02 / FILM</span></figcaption></figure>
+      </button>
+      <button class="lw-card" type="button" data-src="media/lawone.web.mp4" data-title="MONARCH: LAW ONE">
+        <figure><img class="lw-img" src="assets/thumbs/th-lawone.jpg?v=64" alt="Monarch Law One — law story film" loading="lazy">
+          <figcaption><b>MONARCH: LAW ONE</b><span>03 / LAW</span></figcaption></figure>
+      </button>
+      <button class="lw-card" type="button" data-src="media/monarch-reference-07-enhanced.mp4" data-title="THE VISION" data-wide="1">
+        <figure><img class="lw-img" src="assets/thumbs/monarch-07.jpg" alt="The Vision — MONARCH film still" loading="lazy">
+          <figcaption><b>THE VISION</b><span>04 / VISION</span></figcaption></figure>
+      </button>
+    </div>
+    <div class="lw-stats">
+      <div class="lw-stat-group">
+        <h3>FILMS — RECEIPTS</h3>
+        <div class="lw-stat-row">
+          <div class="lw-stat"><b>583K+</b><span>VIEWS / ONE SHORT</span></div>
+          <div class="lw-stat"><b>74%</b><span>AVG RETENTION</span></div>
+          <div class="lw-stat"><b>85%</b><span>WATCHED TO END</span></div>
+        </div>
+      </div>
+      <div class="lw-stat-group">
+        <h3>AUTOMATION — PROOF</h3>
+        <div class="lw-stat-row">
+          <div class="lw-stat"><b>$400</b><span>ONE SECOND-HAND DELL</span></div>
+          <div class="lw-stat"><b>3</b><span>MONTHS TO MONETIZED</span></div>
+          <div class="lw-stat"><b>+1.6K</b><span>SUBS / ONE SHORT</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- ── Films ───────────────────────────────────────────────── -->
   <section class="section" id="work">
     <p class="sec-kick mono" data-rv="up">03 — REEL</p>
@@ -248,6 +285,19 @@
     <p class="mono work-more" data-rv="up"><a href="https://github.com/adil-chandio" target="_blank" rel="noopener">VIEW ALL ON GITHUB ↗</a></p>
   </section>
 
+  <!-- ══════════ CH · THE HALL (GL gallery runway) ══════════ -->
+  <section id="chGallery" class="gl-runway" aria-label="The hall — MONARCH film archive">
+    <div class="gal-ui">
+      <p class="gal-hint">SCROLL — WALK THE HALL</p>
+      <div class="gal-label">
+        <span class="gal-idx" id="galIdx">01</span>
+        <b class="gal-title" id="galTitle">MONARCH — THE MAIN FILM</b>
+        <span class="gal-meta" id="galMeta">37 SEC · SOUND ON</span>
+      </div>
+      <p class="gal-foot">EVERY SCREEN PLAYS — CLICK ANY SCREEN</p>
+    </div>
+  </section>
+
   <!-- ── Proof ──────────────────────────────────────────────── -->
   <section class="section dark" id="proof">
     <span class="wm" data-px="0.06" aria-hidden="true">583K</span>
@@ -287,143 +337,33 @@
   </section>
 
 
-<div class="space-strip"><span class="ss-l"><b>◈ 02</b> — VIDEO EDITING</span><span class="ss-r">CUT TO THE BEAT</span></div>
-<!-- ══════════ 02 · VIDEO EDITING (dark, film bg) ══════════ -->
-<section class="scene" id="space-video" data-idx="1" data-name="VIDEO">
-  <div class="vbg"><video muted loop playsinline preload="none" poster="assets/thumbs/monarch-06.jpg" data-src="media/monarch-reference-06-enhanced.mp4"></video></div>
-  <div class="scene-inner d-inner">
-    <p class="kicker rv">02 — MOTION &amp; VIDEO EDITING</p>
-    <h2 class="h-display d-title rv" style="--d:.08s">CUT TO<br>THE <span class="red">BEAT</span></h2>
-    <p class="d-body rv" style="--d:.16s">From idea to final cut — <b>script, frames, voice, edit</b>. Cuts locked to the beat, composites, mattes and a clean finish. CapCut, FFmpeg, build once, use forever.</p>
-    <div class="statrow rv" style="--d:.24s">
-      <div class="stat"><b>583K+</b><span>VIEWS / ONE SHORT</span></div>
-      <div class="stat"><b>74%</b><span>AVG RETENTION</span></div>
-      <div class="stat"><b>85%</b><span>WATCHED TO END</span></div>
-    </div>
-    <div class="cta-row rv" style="--d:.32s">
-      <button class="btn-red" id="btnWatchFilm" type="button" data-cursor="PLAY" data-src="media/monarch-portfolio-v5.mp4" data-title="MONARCH PORTFOLIO FILM — 37S">WATCH THE MAIN FILM ▸</button>
-      <a class="btn-ghost" href="#work">ALL FILMS ↓</a>
-    </div>
-  </div>
-</section>
-
-<div class="space-strip light-strip"><span class="ss-l"><b>◈ 03</b> — WEB DEVELOPMENT</span><span class="ss-r">SITES WITH A PULSE</span></div>
-<!-- ══════════ 03 · WEB DEVELOPMENT (light) ══════════ -->
-<section class="scene light" id="space-web" data-idx="2" data-name="WEB">
-  <div class="scene-inner">
-    <p class="kicker rv">03 — WEB DEVELOPMENT</p>
-    <h2 class="h-display w-title rv" style="--d:.08s">SITES WITH<br>A <span class="row2">PULSE</span></h2>
-    <div class="worklist" style="margin-top:30px">
-      <div class="case rv" style="--d:.12s">
-        <div class="case-num">C—01</div>
-        <div>
-          <h3>This site — MONARCH Portfolio</h3>
-          <p>Hand-built static site. GitHub Pages, zero build step, credential-locked voice pipeline and a Groq→Gemini brained concierge behind a Vercel serverless proxy. No frameworks — code you can read at 3 AM.</p>
-          <div class="tags"><span class="tag">HTML/CSS/JS</span><span class="tag">GitHub Pages</span><span class="tag">Vercel</span><span class="tag">Groq × Gemini</span><span class="tag">Fish Audio TTS</span></div>
-          <a href="#top">YOU ARE ON IT ↗</a>
-        </div>
-      </div>
-      <div class="case rv" style="--d:.18s">
-        <div class="case-num">C—02</div>
-        <div>
-          <h3>MONARCH Concierge — the brain</h3>
-          <p>Customer-support-grade proxy: Groq llama-3.3-70b → llama-3.1-8b → Gemini 2.5-flash → 2.0-flash waterfall, MONARCH-scoped prompt, per-IP rate limits, CORS allowlist, zero keys in the browser, graceful KB fallback.</p>
-          <div class="tags"><span class="tag">Node · Serverless</span><span class="tag">Rate-limited</span><span class="tag">Zero-key client</span><span class="tag">Injection-guarded</span></div>
-          <a href="https://github.com/adil-chandio/portfolio/tree/main/concierge-api" target="_blank" rel="noopener">SOURCE — CONCIERGE-API ↗</a>
-        </div>
-      </div>
-      <div class="case rv" style="--d:.24s">
-        <div class="case-num">C—03</div>
-        <div>
-          <h3>Python + JS tools &amp; rigs</h3>
-          <p>FFmpeg and Python rigs for batch voice pipelines (Fish Audio), clip pre-baking, md5-pinned regeneration guards and CI voice sync — the automation behind MONARCH&rsquo;s media engine.</p>
-          <div class="tags"><span class="tag">Python</span><span class="tag">FFmpeg</span><span class="tag">GitHub Actions</span><span class="tag">md5-guarded CI</span></div>
-          <a href="https://github.com/adil-chandio" target="_blank" rel="noopener">ALL REPOS ↗</a>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<div class="space-strip"><span class="ss-l"><b>◈ 04</b> — YOUTUBE AUTOMATION</span><span class="ss-r">CHANNELS THAT RUN THEMSELVES</span></div>
-<!-- ══════════ 04 · YOUTUBE AUTOMATION (dark, video bg) ══════════ -->
-<section class="scene" id="space-yta" data-idx="3" data-name="YT AUTOMATION">
-  <div class="vbg"><video muted loop playsinline preload="none" poster="assets/thumbs/th-process.jpg" data-src="media/process.web.mp4"></video></div>
-  <div class="scene-inner d-inner">
-    <div class="yta-grid">
+  <!-- ══════════ CH · WHO (blue corridor) ══════════ -->
+  <section id="chWho" class="who" aria-label="Who I work with">
+    <div class="who-inner">
       <div>
-        <p class="kicker rv">04 — YOUTUBE AUTOMATION</p>
-        <h2 class="h-display d-title rv" style="--d:.08s">CHANNELS THAT<br><span class="red">RUN</span> THEMSELVES</h2>
-        <p class="d-body rv" style="--d:.16s">Channels that <b>plan, script and schedule themselves while I sleep</b> — the $400 Dell pipeline that monetized in three months.</p>
-        <div class="pipeline rv" style="--d:.24s" aria-label="Automation pipeline">
-          <span class="pstep">Research</span><span class="parrow">→</span>
-          <span class="pstep">Script</span><span class="parrow">→</span>
-          <span class="pstep">Voice</span><span class="parrow">→</span>
-          <span class="pstep">Edit</span><span class="parrow">→</span>
-          <span class="pstep">Schedule</span>
-        </div>
-        <div class="statrow rv" style="--d:.32s">
-          <div class="stat"><b>$400</b><span>ONE SECOND-HAND DELL</span></div>
-          <div class="stat"><b>3</b><span>MONTHS TO MONETIZED</span></div>
-          <div class="stat"><b>+1.6K</b><span>SUBS / ONE SHORT</span></div>
-        </div>
+        <p class="who-kick">WHO I WORK WITH</p>
+        <h2>FOUNDERS,<br>CREATORS<br>&amp; <span>STUDIOS.</span></h2>
+        <p class="who-body">I work with <b>brands, channels and studios</b> that need films cut to the beat, sites with a pulse, and pipelines that don&rsquo;t sleep. Every project runs the same operating system — <b>research → script → voice → edit → schedule</b> — shipped frame by frame.</p>
+        <a class="who-learn" href="#about">LEARN MORE ↓</a>
       </div>
-      <div class="phone rv" style="--d:.28s" aria-label="YouTube Studio analytics recording">
-        <video muted loop playsinline preload="none" poster="assets/thumbs/th-process.jpg" data-src="media/proof-loop.web.mp4"></video>
+      <div class="who-rows">
+        <a class="who-row" href="#work"><i>01</i><div><b>Edit</b><span>Films cut to the beat — composites, mattes and a clean finish. CapCut × FFmpeg.</span></div></a>
+        <a class="who-row" href="https://github.com/adil-chandio" target="_blank" rel="noopener"><i>02</i><div><b>Build</b><span>Hand-built sites &amp; MONARCH Concierge — zero-key client, Groq × Gemini brain.</span></div></a>
+        <a class="who-row" href="#proof"><i>03</i><div><b>Automate</b><span>YT pipelines that research, script, voice and schedule — while you sleep.</span></div></a>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<div class="space-strip light-strip"><span class="ss-l"><b>◈ 05</b> — SOCIALS</span><span class="ss-r">WHERE THE CHAOS LIVES</span></div>
-<!-- ══════════ 05 · SOCIALS (light) ══════════ -->
-<section class="scene light" id="space-socials" data-idx="4" data-name="SOCIALS">
-  <div class="scene-inner">
-    <p class="kicker rv">05 — SOCIAL MEDIA</p>
-    <h2 class="h-display w-title rv" style="--d:.08s">FOLLOW<br>THE <span class="row2">CHAOS</span></h2>
-    <div class="soc-giant rv" style="--d:.16s">
-      <a class="soc-link" href="https://www.tiktok.com/@adil.chandiio" target="_blank" rel="noopener" aria-label="TikTok — @adil.chandiio">
-        <span class="sg-name">TikTok</span><span class="sg-handle">@adil.chandiio</span><span class="sg-arrow">↗</span>
-      </a>
-      <a class="soc-link" href="https://www.instagram.com/adill.chandio" target="_blank" rel="noopener" aria-label="Instagram — @adill.chandio">
-        <span class="sg-name">Instagram</span><span class="sg-handle">@adill.chandio</span><span class="sg-arrow">↗</span>
-      </a>
-      <a class="soc-link" href="https://github.com/adil-chandio" target="_blank" rel="noopener" aria-label="GitHub — adil-chandio">
-        <span class="sg-name">GitHub</span><span class="sg-handle">@adil-chandio</span><span class="sg-arrow">↗</span>
-      </a>
-      <a class="soc-link" href="mailto:workadilchandio@gmail.com" aria-label="Email — workadilchandio@gmail.com">
-        <span class="sg-name">Email</span><span class="sg-handle">workadilchandio@gmail.com</span><span class="sg-arrow">↗</span>
-      </a>
+  <!-- ══════════ CH · THE ALLEY (red corridor finale) ══════════ -->
+  <section id="chAlley" class="alley" aria-label="Contact — the red alley">
+    <div class="alley-in">
+      <p class="alley-kick">AVAILABLE FOR WORK</p>
+      <h2>LET&rsquo;S TALK ABOUT<br>YOUR <span class="rd">NEXT PROJECT</span></h2>
+      <p class="alley-sub">Films, sites, automation, renders — one inbox answers everything.</p>
+      <a class="alley-mail" href="mailto:workadilchandio@gmail.com?subject=MONARCH%20—%20YOUR%20NEXT%20PROJECT">workadilchandio@gmail.com</a>
+      <p class="alley-scroll">↓ THE FORM IS TWENTY PIXELS BELOW ↓</p>
     </div>
-  </div>
-</section>
-
-<div class="space-strip"><span class="ss-l"><b>◈ 06</b> — 3D RENDERING</span><span class="ss-r">REALITY, RENDERED</span></div>
-<!-- ══════════ 06 · 3D RENDERING (dark corridor) ══════════ -->
-<section class="scene" id="space-render" data-idx="5" data-name="3D RENDERING">
-  <div class="corridor" aria-hidden="true">
-    <span class="arch a0" style="width:96vmin;height:64vmin;opacity:.95"></span>
-    <span class="arch a1" style="width:78vmin;height:52vmin;opacity:.85;animation-delay:.25s"></span>
-    <span class="arch a2" style="width:60vmin;height:40vmin;opacity:.75;animation-delay:.5s"></span>
-    <span class="arch a3" style="width:43vmin;height:28vmin;opacity:.62;animation-delay:.75s"></span>
-    <span class="arch a4" style="width:27vmin;height:18vmin;opacity:.5;animation-delay:1s"></span>
-    <figure class="float-frame f1" style="width:19vmin;height:12vmin;left:8%;top:20%;animation-delay:.2s"><img src="assets/thumbs/monarch-06.jpg" alt="MONARCH visual frame — silent study" loading="lazy"></figure>
-    <figure class="float-frame f2" style="width:21vmin;height:13vmin;right:9%;top:16%;animation-delay:1.4s"><img src="assets/thumbs/monarch-07.jpg" alt="MONARCH visual frame — the vision" loading="lazy"></figure>
-    <figure class="float-frame f1" style="width:17vmin;height:11vmin;left:16%;bottom:17%;animation-delay:2.1s"><img src="assets/thumbs/th-game.jpg" alt="MONARCH frame still" loading="lazy"></figure>
-    <figure class="float-frame f2" style="width:19vmin;height:12vmin;right:14%;bottom:20%;animation-delay:.9s"><img src="assets/thumbs/th-power.jpg" alt="MONARCH frame still" loading="lazy"></figure>
-  </div>
-  <div class="scene-inner d-inner" style="text-align:center">
-    <p class="kicker rv" style="justify-content:center">06 — 3D RENDERING</p>
-    <h2 class="h-display d-title rv" style="--d:.08s">REALITY,<br><span class="red">RENDERED</span></h2>
-    <p class="d-body rv" style="--d:.16s;margin-left:auto;margin-right:auto">Corridors, neon alleys and product stages — the MONARCH visual engine. Every MONARCH film is built frame-by-frame in this pipeline. The full render reel is shareable on request.</p>
-    <div class="cta-row rv" style="--d:.24s;justify-content:center">
-      <a class="btn-red" href="mailto:workadilchandio@gmail.com?subject=3D%20RENDER%20REEL%20—%20MONARCH">REQUEST THE REEL ▸</a>
-      <a class="btn-ghost" href="#contact">BOOK A RENDER</a>
-    </div>
-  </div>
-</section>
-
-<div class="space-strip"><span class="ss-l"><b>◈ 07</b> — CONTACT</span><span class="ss-r">AVAILABLE FOR WORK</span></div>
+  </section>
 
   <!-- ── Contact ──────────────────────────────────────────────── -->
   <section class="section dark" id="contact">
@@ -548,7 +488,8 @@
 <div id="toast" class="toast mono" role="status"></div>
 <script src="assets/rebuild.js?v=4" defer></script>
 <script src="assets/main.js?v=39" defer></script>
-<script src="assets/journey.js?v=1" defer></script>
+<script src="assets/three.min.js?v=1" defer></script>
+<script src="assets/world.js?v=1" defer></script>
 <script>window.MQ_API_URL = 'https://monarch-concierge-api.vercel.app/api/chat';</script>
 <script src="assets/assistant.js?v=9" defer></script>
 </body>
