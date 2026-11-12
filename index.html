@@ -20,7 +20,7 @@
 <link rel="stylesheet" href="assets/styles.css?v=39">
 <link rel="stylesheet" href="assets/rebuild.css?v=5">
 <link rel="stylesheet" href="assets/assistant.css?v=1">
-<link rel="stylesheet" href="assets/world.css?v=1">
+<link rel="stylesheet" href="assets/world.css?v=2">
 </head>
 <body class="locked">
 <canvas id="gl" aria-hidden="true"></canvas>
@@ -289,12 +289,22 @@
   <section id="chGallery" class="gl-runway" aria-label="The hall — MONARCH film archive">
     <div class="gal-ui">
       <p class="gal-hint">SCROLL — WALK THE HALL</p>
-      <div class="gal-label">
-        <span class="gal-idx" id="galIdx">01</span>
-        <b class="gal-title" id="galTitle">MONARCH — THE MAIN FILM</b>
-        <span class="gal-meta" id="galMeta">37 SEC · SOUND ON</span>
+      <div class="gal-scrim" aria-hidden="true"></div>
+      <div class="gal-panel">
+        <div class="gal-col gal-c-project">
+          <span class="gal-lbl">PROJECT</span>
+          <b id="galTitle">MONARCH — THE MAIN FILM</b>
+        </div>
+        <div class="gal-col gal-c-info">
+          <span class="gal-lbl">INFO</span>
+          <p id="galInfo">The 37-second showreel — M4, mask, red.</p>
+        </div>
+        <div class="gal-col gal-c-role">
+          <span class="gal-lbl">ROLE</span>
+          <div class="gal-tags" id="galTags"><span>EDIT</span><span>GRADE</span></div>
+        </div>
       </div>
-      <p class="gal-foot">EVERY SCREEN PLAYS — CLICK ANY SCREEN</p>
+      <p class="gal-foot"><span id="galIdx">01 / 10</span> — EVERY SCREEN PLAYS — CLICK ANY SCREEN</p>
     </div>
   </section>
 
@@ -361,6 +371,12 @@
       <h2>LET&rsquo;S TALK ABOUT<br>YOUR <span class="rd">NEXT PROJECT</span></h2>
       <p class="alley-sub">Films, sites, automation, renders — one inbox answers everything.</p>
       <a class="alley-mail" href="mailto:workadilchandio@gmail.com?subject=MONARCH%20—%20YOUR%20NEXT%20PROJECT">workadilchandio@gmail.com</a>
+      <div class="alley-btns">
+        <a class="alley-btn" href="mailto:workadilchandio@gmail.com">MAIL ↗</a>
+        <a class="alley-btn" href="https://www.tiktok.com/@adil.chandiio" target="_blank" rel="noopener">TIKTOK ↗</a>
+        <a class="alley-btn" href="https://www.instagram.com/adill.chandio" target="_blank" rel="noopener">INSTAGRAM ↗</a>
+        <a class="alley-btn" href="https://github.com/adil-chandio" target="_blank" rel="noopener">GITHUB ↗</a>
+      </div>
       <p class="alley-scroll">↓ THE FORM IS TWENTY PIXELS BELOW ↓</p>
     </div>
   </section>
@@ -489,7 +505,7 @@
 <script src="assets/rebuild.js?v=4" defer></script>
 <script src="assets/main.js?v=39" defer></script>
 <script src="assets/three.min.js?v=1" defer></script>
-<script src="assets/world.js?v=1" defer></script>
+<script src="assets/world.js?v=2" defer></script>
 <script>window.MQ_API_URL = 'https://monarch-concierge-api.vercel.app/api/chat';</script>
 <script src="assets/assistant.js?v=9" defer></script>
 </body>
