@@ -22,19 +22,6 @@
   }
   setProg(0.2);
 
-  /* ── zero-compromise guard: weak/software GPUs get the static site ──
-     probe the UNMASKED renderer before paying any WebGL cost */
-  try {
-    var probe = document.createElement('canvas');
-    var pctx = probe.getContext('webgl') || probe.getContext('experimental-webgl');
-    var dbg = pctx && pctx.getExtension('WEBGL_debug_renderer_info');
-    var gpu = dbg ? String(pctx.getParameter(dbg.UNMASKED_RENDERER_WEBGL) || '') : '';
-    var mem = navigator.deviceMemory || 8;
-    var cores = navigator.hardwareConcurrency || 8;
-    var weakGpu = /(SwiftShader|llvmpipe|softpipe|VideoCore|Mali-[0-9T]|Mali-G[0-3][0-9]|Adreno \(TM\)? [234]|Adreno\(TM\) [234]|PowerVR|ANGLE \(.*Intel)/i.test(gpu);
-    if (weakGpu || (mem <= 2 && cores <= 4)) { failSoft(); return; }
-  } catch (e) { /* detection failed — keep GL, correct default */ }
-
   var canvas = document.getElementById('gl');
   if (!canvas || !window.THREE) { failSoft(); return; }
 
@@ -44,15 +31,13 @@
     renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, powerPreference: 'high-performance' });
   } catch (e) { failSoft(); return; }
 
-  var coarse = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 760;
-  var lite = coarse || (navigator.hardwareConcurrency || 8) <= 4;
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, lite ? 1.25 : 2));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setClearColor(0x060606, 1);
   setProg(0.45);
 
   var scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(0x060606, 12, 84);
+  scene.fog = new THREE.Fog(0x060606, 14, 88);
 
   var camera = new THREE.PerspectiveCamera(56, window.innerWidth / window.innerHeight, 0.1, 400);
   camera.position.set(0, 1.72, 12);
@@ -69,40 +54,6 @@
     var t = new THREE.CanvasTexture(c); return t;
   }
   var sprite = makeSprite();
-  /* warm halo for the portrait collar (the reference's ring of light) */
-  function makeHaloTex() {
-    var c = document.createElement('canvas'); c.width = c.height = 128;
-    var g = c.getContext('2d');
-    var grad = g.createRadialGradient(64, 64, 6, 64, 64, 64);
-    grad.addColorStop(0, 'rgba(255,244,225,0.9)');
-    grad.addColorStop(0.35, 'rgba(255,224,190,0.32)');
-    grad.addColorStop(1, 'rgba(255,220,180,0)');
-    g.fillStyle = grad; g.fillRect(0, 0, 128, 128);
-    return new THREE.CanvasTexture(c);
-  }
-  var haloTex = makeHaloTex();
-  function makeConeTex() {
-    var c = document.createElement('canvas'); c.width = 64; c.height = 256;
-    var g = c.getContext('2d');
-    var grad = g.createLinearGradient(0, 0, 0, 256);
-    grad.addColorStop(0, 'rgba(255,255,255,0.6)');
-    grad.addColorStop(0.75, 'rgba(255,255,255,0.07)');
-    grad.addColorStop(1, 'rgba(255,255,255,0)');
-    g.fillStyle = grad; g.fillRect(0, 0, 64, 256);
-    return new THREE.CanvasTexture(c);
-  }
-  var coneTex = makeConeTex();
-  function makePoolTex() {
-    var c = document.createElement('canvas'); c.width = c.height = 128;
-    var g = c.getContext('2d');
-    var grad = g.createRadialGradient(64, 64, 4, 64, 64, 64);
-    grad.addColorStop(0, 'rgba(255,238,214,0.75)');
-    grad.addColorStop(0.55, 'rgba(255,232,205,0.18)');
-    grad.addColorStop(1, 'rgba(255,232,205,0)');
-    g.fillStyle = grad; g.fillRect(0, 0, 128, 128);
-    return new THREE.CanvasTexture(c);
-  }
-  var poolTex = makePoolTex();
 
   /* ── canvas textures: grid floor + wall panels ────────────── */
   function makeGridTex() {
@@ -183,32 +134,6 @@
     b.position.set(0, 0.27, z); corridor.add(b);
   });
   scene.add(corridor);
-  /* volumetric light shafts + warm pools on the grid floor */
-  if (!lite) {
-    var coneGeo = new THREE.ConeGeometry(2.3, 6.3, 16, 1, true);
-    var coneMat = new THREE.MeshBasicMaterial({ map: coneTex, transparent: true, opacity: 0.3, depthWrite: false, blending: THREE.AdditiveBlending });
-    var poolGeo = new THREE.PlaneGeometry(5.4, 4.0);
-    for (var cz = -38; cz >= -82; cz -= 14.2) {
-      var cone = new THREE.Mesh(coneGeo, coneMat);
-      cone.position.set(0, 3.95, cz); scene.add(cone);
-      var pool = new THREE.Mesh(poolGeo, new THREE.MeshBasicMaterial({ map: poolTex, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending }));
-      pool.rotation.x = -Math.PI / 2; pool.position.set(0, 0.02, cz); scene.add(pool);
-    }
-  }
-  /* dust motes drifting through the shafts */
-  var DUST_N = lite ? 0 : 90, dustPos = new Float32Array(Math.max(1, DUST_N) * 3), dustSpd = new Float32Array(Math.max(1, DUST_N));
-  for (var di = 0; di < DUST_N; di++) {
-    dustPos[di * 3] = (Math.random() - 0.5) * 12;
-    dustPos[di * 3 + 1] = Math.random() * 6.4;
-    dustPos[di * 3 + 2] = -8 - Math.random() * 76;
-    dustSpd[di] = 0.08 + Math.random() * 0.16;
-  }
-  var dustGeo = new THREE.BufferGeometry();
-  dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3));
-  var dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({
-    color: 0xfff2df, size: 0.055, map: sprite, transparent: true, opacity: 0.55,
-    depthWrite: false, blending: THREE.AdditiveBlending }));
-  dust.visible = false; if (DUST_N) scene.add(dust);
 
   /* ── hero: warped wireframe grid floor (the dominik bulge) ── */
   var heroGrid = (function () {
@@ -274,12 +199,6 @@
     };
     img.src = 'assets/portrait-masked.png';
   })();
-  if (!lite) {
-    var collar = new THREE.Mesh(new THREE.PlaneGeometry(9.6, 4.2),
-      new THREE.MeshBasicMaterial({ map: haloTex, transparent: true, opacity: 0.65, depthWrite: false, blending: THREE.AdditiveBlending }));
-    collar.position.set(0, -2.1, -0.9);
-    portrait.add(collar);
-  }
   scene.add(portrait);
 
   /* ── gallery: floating screens, click = play the film ─────── */
@@ -298,19 +217,11 @@
   var hall = new THREE.Group();
   var screenMeshes = [];
   var texLoader = new THREE.TextureLoader();
-  var screenTex = {};
-  function getScreenTex(img) {
-    if (!screenTex[img]) {
-      var t = texLoader.load(img);
-      if ('colorSpace' in t && THREE.SRGBColorSpace) t.colorSpace = THREE.SRGBColorSpace;
-      screenTex[img] = t;
-    }
-    return screenTex[img];
-  }
   SCREENS.forEach(function (s, i) {
     var side = (i % 2 === 0) ? 1 : -1;
     var z = -34 - i * 7.1;
-    var tex = getScreenTex(s.img);
+    var tex = texLoader.load(s.img);
+    if ('colorSpace' in tex && THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
     var mat = new THREE.MeshBasicMaterial({ map: tex, color: 0xffffff });
     var frame = new THREE.Mesh(new THREE.BoxGeometry(5.15, 3.15, 0.1), new THREE.MeshBasicMaterial({ color: 0x0d0d12 }));
     var scr = new THREE.Mesh(new THREE.PlaneGeometry(4.8, 2.8), mat);
@@ -323,45 +234,6 @@
     hall.add(grp);
     screenMeshes.push(scr);
   });
-  function makeGlowTex() {
-    var c = document.createElement('canvas'); c.width = 256; c.height = 256;
-    var g = c.getContext('2d');
-    var grad = g.createRadialGradient(128, 128, 8, 128, 128, 128);
-    grad.addColorStop(0, 'rgba(255,60,60,0.55)');
-    grad.addColorStop(0.45, 'rgba(210,31,43,0.16)');
-    grad.addColorStop(1, 'rgba(210,31,43,0)');
-    g.fillStyle = grad; g.fillRect(0, 0, 256, 256);
-    return new THREE.CanvasTexture(c);
-  }
-  var glowTex = makeGlowTex();
-  if (!lite) SCREENS.forEach(function (s, i) {
-    var side = (i % 2 === 0) ? 1 : -1;
-    var z = -34 - i * 7.1;
-    var glow = new THREE.Mesh(new THREE.PlaneGeometry(11, 7),
-      new THREE.MeshBasicMaterial({ map: glowTex, transparent: true, opacity: 0.85, depthWrite: false, blending: THREE.AdditiveBlending }));
-    glow.position.set(side * 7.42, 2.75, z);
-    glow.rotation.y = -side * (Math.PI / 2 - 0.46);
-    scene.add(glow);
-  });
-  var benchLedMat = new THREE.MeshBasicMaterial({ color: 0xfff1d6 });
-  [-46, -68, -90, -112].forEach(function (z) {
-    [-1.68, 1.68].forEach(function (x) {
-      var led = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.3, 1.02), benchLedMat);
-      led.position.set(x, 0.27, z); scene.add(led);
-    });
-  });
-  var reflTexLoader = texLoader;
-  if (!lite) SCREENS.forEach(function (s, i) {
-    var side = (i % 2 === 0) ? 1 : -1;
-    var z = -34 - i * 7.1;
-    var tex = getScreenTex(s.img);   /* same texture object — zero extra GPU cost */
-    var refl = new THREE.Mesh(new THREE.PlaneGeometry(4.8, 2.8),
-      new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0.22, depthWrite: false }));
-    refl.position.set(side * 6.35, -1.35, z);
-    refl.rotation.y = -side * (Math.PI / 2 - 0.46);
-    refl.rotation.x = 0; refl.scale.y = -1;
-    scene.add(refl);
-  });
   scene.add(hall);
 
   /* gallery DOM label */
@@ -369,7 +241,6 @@
   var galTitle = document.getElementById('galTitle');
   var galMeta = document.getElementById('galMeta');
   var galActive = -1;
-  var galCount = document.getElementById('galCount');
   function updateGalleryLabel(camZ) {
     if (!galIdx || !galTitle) return;
     var idx = Math.round((-camZ - 30) / 7.1);
@@ -377,7 +248,6 @@
     if (idx !== galActive) {
       galActive = idx;
       galIdx.textContent = ('0' + (idx + 1)).slice(-2);
-      if (galCount) galCount.innerHTML = '<b>' + ('0' + (idx + 1)).slice(-2) + '</b> <i>/</i> ' + SCREENS.length;
       galTitle.textContent = SCREENS[idx].title;
       galMeta.textContent = SCREENS[idx].meta;
     }
@@ -483,7 +353,6 @@
   });
 
   /* ── main loop ────────────────────────────────────────────── */
-  var lastFrame = 0;
   var scrollCur = 0, tPrev = performance.now() / 1000;
   var glitchAt = 2.4, glitchUntil = 0;
   var fogCol = new THREE.Color(6 / 255, 6 / 255, 6 / 255);
@@ -491,15 +360,12 @@
 
   function tick() {
     requestAnimationFrame(tick);
-    if (glPaused) { tPrev = performance.now() / 1000; return; }
-    if (lite) { var lf = performance.now() / 1000; if (lf - lastFrame < 0.032) return; lastFrame = lf; }
     var t = performance.now() / 1000;
     var dt = Math.min(0.05, t - tPrev); tPrev = t;
 
     var maxScroll = Math.max(1, metrics.docH - metrics.vh);
     var target = Math.max(0, Math.min(1, window.scrollY / maxScroll));
     scrollCur += (target - scrollCur) * (reduced ? 1 : 0.075);
-    if (Math.abs(target - scrollCur) < 0.0005) scrollCur = target;
     var prog = scrollCur;
 
     /* camera rail */
@@ -521,7 +387,7 @@
     /* hero zone fades */
     var heroVis = Math.max(0, Math.min(1, 1 - (-camZ) / 17));   /* 1 at hero → 0 by z=-17 */
     heroGrid.visible = heroVis > 0.02;
-    heroGrid.material.opacity = (0.5 + Math.sin(t * 0.8) * 0.08) * heroVis;
+    heroGrid.material.opacity = 0.5 * heroVis;
     corridor.visible = prog > 0.055;
     portrait.visible = heroVis > 0.02;
     if (portrait.visible) {
@@ -538,18 +404,8 @@
     }
 
     /* embers in the alley */
-    dust.visible = corridor.visible;
-    if (dust.visible && !reduced) {
-      var dp = dustGeo.attributes.position;
-      for (var dmi = 0; dmi < DUST_N; dmi++) {
-        var dy = dp.getY(dmi) - dustSpd[dmi] * dt;
-        if (dy < 0.05) dy = 6.4;
-        dp.setY(dmi, dy);
-      }
-      dp.needsUpdate = true;
-    }
     embers.visible = prog > 0.74;
-    if (embers.visible && !reduced) {
+    if (embers.visible) {
       var p = emberGeo.attributes.position;
       for (var i = 0; i < EMBER_N; i++) {
         var y = p.getY(i) + emberSpd[i] * dt;
@@ -565,8 +421,6 @@
 
     renderer.render(scene, camera);
   }
-  var glPaused = false;
-  document.addEventListener('visibilitychange', function () { glPaused = document.hidden; });
   tick();
 
   /* light chapter covers → same #player lightbox */
