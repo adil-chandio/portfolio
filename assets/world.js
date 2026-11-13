@@ -22,6 +22,19 @@
   }
   setProg(0.2);
 
+  /* ── zero-compromise guard: weak/software GPUs get the static site ──
+     probe the UNMASKED renderer before paying any WebGL cost */
+  try {
+    var probe = document.createElement('canvas');
+    var pctx = probe.getContext('webgl') || probe.getContext('experimental-webgl');
+    var dbg = pctx && pctx.getExtension('WEBGL_debug_renderer_info');
+    var gpu = dbg ? String(pctx.getParameter(dbg.UNMASKED_RENDERER_WEBGL) || '') : '';
+    var mem = navigator.deviceMemory || 8;
+    var cores = navigator.hardwareConcurrency || 8;
+    var weakGpu = /(SwiftShader|llvmpipe|softpipe|VideoCore|Mali-[0-9T]|Mali-G[0-3][0-9]|Adreno \(TM\)? [234]|Adreno\(TM\) [234]|PowerVR|ANGLE \(.*Intel)/i.test(gpu);
+    if (weakGpu || (mem <= 2 && cores <= 4)) { failSoft(); return; }
+  } catch (e) { /* detection failed — keep GL, correct default */ }
+
   var canvas = document.getElementById('gl');
   if (!canvas || !window.THREE) { failSoft(); return; }
 
@@ -37,8 +50,6 @@
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setClearColor(0x060606, 1);
   setProg(0.45);
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.18;
 
   var scene = new THREE.Scene();
   scene.fog = new THREE.Fog(0x060606, 12, 84);
@@ -172,25 +183,17 @@
     b.position.set(0, 0.27, z); corridor.add(b);
   });
   scene.add(corridor);
-  /* emissive halo planes hugging the red strips — the tube glow */
-  var stripGlowMat = new THREE.MeshBasicMaterial({ map: haloTex, color: 0xff5a4a, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide });
-  [2.35, 4.7].forEach(function (y) {
-    [-7.36, 7.36].forEach(function (x) {
-      var glow = new THREE.Mesh(new THREE.PlaneGeometry(300, 0.9), stripGlowMat);
-      glow.rotation.y = Math.PI / 2; glow.position.set(x, y, -96);
-      scene.add(glow);
-    });
-  });
   /* volumetric light shafts + warm pools on the grid floor */
-  var coneGeo = new THREE.ConeGeometry(2.3, 6.3, 18, 1, true);
-  var coneMat = new THREE.MeshBasicMaterial({ map: coneTex, transparent: true, opacity: 0.3, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide });
-  var poolGeo = new THREE.PlaneGeometry(5.4, 4.0);
-  var coneCount = 0;
-  for (var cz = -38; cz >= -88 && coneCount < (lite ? 2 : 4); cz -= 14.2) {
-    var cone = new THREE.Mesh(coneGeo, coneMat);
-    cone.position.set(0, 3.95, cz); scene.add(cone); coneCount++;
-    var pool = new THREE.Mesh(poolGeo, new THREE.MeshBasicMaterial({ map: poolTex, transparent: true, opacity: 0.6, depthWrite: false, blending: THREE.AdditiveBlending }));
-    pool.rotation.x = -Math.PI / 2; pool.position.set(0, 0.02, cz); scene.add(pool);
+  if (!lite) {
+    var coneGeo = new THREE.ConeGeometry(2.3, 6.3, 16, 1, true);
+    var coneMat = new THREE.MeshBasicMaterial({ map: coneTex, transparent: true, opacity: 0.3, depthWrite: false, blending: THREE.AdditiveBlending });
+    var poolGeo = new THREE.PlaneGeometry(5.4, 4.0);
+    for (var cz = -38; cz >= -82; cz -= 14.2) {
+      var cone = new THREE.Mesh(coneGeo, coneMat);
+      cone.position.set(0, 3.95, cz); scene.add(cone);
+      var pool = new THREE.Mesh(poolGeo, new THREE.MeshBasicMaterial({ map: poolTex, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending }));
+      pool.rotation.x = -Math.PI / 2; pool.position.set(0, 0.02, cz); scene.add(pool);
+    }
   }
   /* dust motes drifting through the shafts */
   var DUST_N = lite ? 0 : 90, dustPos = new Float32Array(Math.max(1, DUST_N) * 3), dustSpd = new Float32Array(Math.max(1, DUST_N));
@@ -271,10 +274,12 @@
     };
     img.src = 'assets/portrait-masked.png';
   })();
-  var collar = new THREE.Mesh(new THREE.PlaneGeometry(9.6, 4.2),
-    new THREE.MeshBasicMaterial({ map: haloTex, transparent: true, opacity: 0.8, depthWrite: false, blending: THREE.AdditiveBlending }));
-  collar.position.set(0, -2.1, -0.9);
-  portrait.add(collar);
+  if (!lite) {
+    var collar = new THREE.Mesh(new THREE.PlaneGeometry(9.6, 4.2),
+      new THREE.MeshBasicMaterial({ map: haloTex, transparent: true, opacity: 0.65, depthWrite: false, blending: THREE.AdditiveBlending }));
+    collar.position.set(0, -2.1, -0.9);
+    portrait.add(collar);
+  }
   scene.add(portrait);
 
   /* ── gallery: floating screens, click = play the film ─────── */
@@ -329,7 +334,7 @@
     return new THREE.CanvasTexture(c);
   }
   var glowTex = makeGlowTex();
-  SCREENS.forEach(function (s, i) {
+  if (!lite) SCREENS.forEach(function (s, i) {
     var side = (i % 2 === 0) ? 1 : -1;
     var z = -34 - i * 7.1;
     var glow = new THREE.Mesh(new THREE.PlaneGeometry(11, 7),
@@ -346,7 +351,7 @@
     });
   });
   var reflTexLoader = texLoader;
-  SCREENS.forEach(function (s, i) {
+  if (!lite) SCREENS.forEach(function (s, i) {
     var side = (i % 2 === 0) ? 1 : -1;
     var z = -34 - i * 7.1;
     var tex = getScreenTex(s.img);   /* same texture object — zero extra GPU cost */
@@ -478,6 +483,7 @@
   });
 
   /* ── main loop ────────────────────────────────────────────── */
+  var lastFrame = 0;
   var scrollCur = 0, tPrev = performance.now() / 1000;
   var glitchAt = 2.4, glitchUntil = 0;
   var fogCol = new THREE.Color(6 / 255, 6 / 255, 6 / 255);
@@ -486,6 +492,7 @@
   function tick() {
     requestAnimationFrame(tick);
     if (glPaused) { tPrev = performance.now() / 1000; return; }
+    if (lite) { var lf = performance.now() / 1000; if (lf - lastFrame < 0.032) return; lastFrame = lf; }
     var t = performance.now() / 1000;
     var dt = Math.min(0.05, t - tPrev); tPrev = t;
 
@@ -500,12 +507,7 @@
     var camX = reduced ? 0 : Math.sin(prog * Math.PI * 4.2) * 0.72;
     var camY = 1.72 + (reduced ? 0 : Math.sin(prog * Math.PI * 3.1) * 0.14);
     camera.position.set(camX, camY, camZ);
-    camera.lookAt(camX * 0.45, 2.02, camZ - 9);
-    if (!reduced) {
-      camera.rotateZ(Math.sin(prog * Math.PI * 2.3) * 0.011 + Math.sin(t * 0.5) * 0.0025);
-      var fov = 56 + Math.sin(prog * Math.PI * 2) * 1.7 + Math.sin(t * 0.42) * 0.35;
-      if (Math.abs(fov - camera.fov) > 0.001) { camera.fov = fov; camera.updateProjectionMatrix(); }
-    }
+    camera.lookAt(camX * 0.45, 2.05, camZ - 9);
 
     /* atmosphere from keyframes */
     var c = colorsAt(prog);
