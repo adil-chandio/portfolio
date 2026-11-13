@@ -287,3 +287,7 @@ html.no-gl .alley{ background:radial-gradient(130% 110% at 50% 100%, #2a0803 0%,
 @media (prefers-reduced-motion: reduce){
   .glh-cue::after, .glh-status i, .gal-hint{ animation:none; }
 }
+
+/* no-gl fallback — the hall chapter needs a body when WebGL is off */
+html.no-gl .gl-runway{ background:radial-gradient(120% 90% at 50% 20%, #101018 0%, #060609 70%); }
+html.no-gl .gl-hero{ background:radial-gradient(150% 110% at 30% 15%, #14141c 0%, #050507 72%); }
