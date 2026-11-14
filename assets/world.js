@@ -353,6 +353,8 @@
   });
 
   /* ── main loop ────────────────────────────────────────────── */
+  var lite30 = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 760;
+  var lastLiteFrame = 0;
   var scrollCur = 0, tPrev = performance.now() / 1000;
   var glitchAt = 2.4, glitchUntil = 0;
   var fogCol = new THREE.Color(6 / 255, 6 / 255, 6 / 255);
@@ -360,6 +362,7 @@
 
   function tick() {
     requestAnimationFrame(tick);
+    if (lite30) { var lf = performance.now() / 1000; if (lf - lastLiteFrame < 0.032) return; lastLiteFrame = lf; }
     var t = performance.now() / 1000;
     var dt = Math.min(0.05, t - tPrev); tPrev = t;
 

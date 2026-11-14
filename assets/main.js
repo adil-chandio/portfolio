@@ -167,7 +167,15 @@ $$('a,button,.work-card,.sk').forEach((el) => {
 });
 
 const L = (c, t, k) => c + (t - c) * k;
+let lastActivity = performance.now();
+let tickerSleeping = false;
+const kick = () => { lastActivity = performance.now(); if (tickerSleeping) { tickerSleeping = false; requestAnimationFrame(ticker); } };
+['scroll','mousemove','resize','click','touchstart'].forEach((ev) => addEventListener(ev, kick, { passive: true, capture: true }));
+
 function ticker() {
+  /* idle-sleep: skip ALL work (and the rAF) once the page has been quiet for 1.2s —
+     parallax has settled by then; any input wakes the loop via kick() */
+  if (performance.now() - lastActivity > 1200) { tickerSleeping = true; return; }
   /* reads */
   const vh = innerHeight, mid = vh / 2, y = scrollY;
   P.forEach((p) => {
