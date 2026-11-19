@@ -77,8 +77,8 @@ body.light-ch .j-chip:hover{color:#111;background:rgba(227,32,47,.1)}
 .j-pin{position:sticky;top:0;height:100svh;overflow:hidden;isolation:isolate}
 .j-bg{position:absolute;inset:-8%;z-index:0;background-size:cover;background-position:center;
   will-change:transform;transform:scale(1.35) translate3d(0,0,0)}
-.j-hero-fallback{display:none}
-body.no-gl .j-hero-fallback{display:block}
+.j-hero-fallback,.j-gl-fallback{display:none}
+body.no-gl .j-hero-fallback,body.no-gl .j-gl-fallback{display:block}
 .j-bg-fly{background-position:center 42%}
 .j-pin::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
   background:radial-gradient(120% 95% at 50% 52%, transparent 44%, rgba(3,3,5,.6) 100%)}
