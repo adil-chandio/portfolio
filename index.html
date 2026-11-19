@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The MONARCH House — Adil Chandio</title>
-<meta name="description" content="Step inside the MONARCH House — a 3D lobby by Adil Chandio. Four doors: the Edit Suite (video editing films), the Render Lab (3D rendering), the Build Forge (3D web experiences) and the full portfolio site.">
+<title>MONARCH — The Scroll | Adil Chandio</title>
+<meta name="description" content="Scroll through the rooms of Adil Chandio — the edit bay (video editing), the render lab (3D CG), the build forge (web development), and the messy middle (about). Films, receipts and one obsessive craft.">
 <link rel="canonical" href="https://adil-chandio.github.io/portfolio/">
-<meta property="og:title" content="The MONARCH House — Adil Chandio">
-<meta property="og:description" content="A 3D house with four doors: films, renders, webcraft — and the full portfolio behind the last door.">
-<meta property="og:image" content="assets/thumbs/th-power.jpg?v=64">
+<meta property="og:title" content="MONARCH — The Scroll | Adil Chandio">
+<meta property="og:description" content="Four rooms, one mind: video editing, 3D rendering, web development — and the messy middle behind all of it.">
+<meta property="og:image" content="assets/plate-edit.jpg?v=1">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#050507">
@@ -16,50 +16,146 @@
 <link rel="apple-touch-icon" href="assets/logo-180.png?v=14">
 <link rel="preload" href="assets/fonts/Manrope-800.ttf" as="font" type="font/ttf" crossorigin>
 <link rel="preload" href="assets/fonts/IBMPlexMono-400.ttf" as="font" type="font/ttf" crossorigin>
-<link rel="stylesheet" href="assets/house.css?v=1">
+<link rel="stylesheet" href="assets/journey.css?v=1">
 </head>
 <body>
-<canvas id="house" aria-hidden="true"></canvas>
 
-<!-- ══════════ DOM HUD — always usable, never trapped ══════════ -->
-<a class="hud-logo" href="home.html" aria-label="MONARCH — open the full portfolio">MONARCH<span>®</span></a>
-<a class="hud-skip" href="home.html">SKIP THE HOUSE <b>ENTER THE SITE ↗</b></a>
+<canvas id="jgl" aria-hidden="true"></canvas>
+<div id="jFlash" aria-hidden="true"></div>
+<div id="jProg" aria-hidden="true"></div>
 
-<div class="hud-room" id="hudRoom" aria-live="polite">
-  <p class="hud-kick" id="hudKick">THE MONARCH HOUSE</p>
-  <h1 class="hud-name" id="hudName">FOUR DOORS.<br>ONE MIND.</h1>
-  <p class="hud-sub" id="hudSub">Drag to look around · click a door to walk through</p>
-</div>
+<!-- loader -->
+<div id="jLoader" aria-hidden="true"><span class="jld-word">MONARCH</span><span class="jld-bar"><i id="jldFill"></i></span><span class="jld-sub">THE SCROLL IS LOADING</span></div>
 
-<nav class="hud-doors" aria-label="Rooms">
-  <button class="hud-door" data-room="edit"><i>01</i><span>EDIT SUITE</span></button>
-  <button class="hud-door" data-room="render"><i>02</i><span>RENDER LAB</span></button>
-  <button class="hud-door" data-room="build"><i>03</i><span>BUILD FORGE</span></button>
-  <button class="hud-door hud-door-rd" data-room="portfolio"><i>04</i><span>THE SITE</span></button>
+<!-- HUD -->
+<a class="j-logo" href="home.html" aria-label="MONARCH — open the full portfolio">MONARCH<span>®</span></a>
+<a class="j-skip" href="home.html">SKIP THE FILM <b>THE FULL SITE ↗</b></a>
+<p class="j-count mono" id="jCount" aria-hidden="true">01 / 04</p>
+
+<nav class="j-chips" aria-label="Chapters">
+  <button class="j-chip on" data-go="ch1"><i>01</i><span>EDIT</span></button>
+  <button class="j-chip" data-go="ch2"><i>02</i><span>RENDER</span></button>
+  <button class="j-chip" data-go="ch3"><i>03</i><span>FORGE</span></button>
+  <button class="j-chip j-chip-warm" data-go="ch4"><i>04</i><span>ABOUT</span></button>
 </nav>
 
-<button class="hud-back" id="hudBack" hidden>← BACK TO THE HALL</button>
-<p class="hud-esc" aria-hidden="true">ESC — BACK · DRAG — LOOK · CLICK — WALK</p>
+<main id="jScroll">
 
-<!-- ══════════ static fallback — no WebGL / no JS / potato GPU ══════════ -->
-<div class="fallback" id="fallback">
-  <p class="fb-kick">THE MONARCH HOUSE</p>
-  <h1 class="fb-name">FOUR DOORS.<br><em>ONE MIND.</em></h1>
-  <p class="fb-sub">Pick a door — everything Adil makes lives behind it.</p>
-  <a class="fb-door" href="home.html#work"><i>01</i><span><b>THE EDIT SUITE</b><u>Films cut to the beat — Paanch Rules (583K views), Law One, the main 37s reel.</u></span><s>→</s></a>
-  <a class="fb-door" href="home.html#chWork"><i>02</i><span><b>THE RENDER LAB</b><u>MONARCH OS · The Vision — original CG work. Full render reel on request.</u></span><s>→</s></a>
-  <a class="fb-door" href="home.html#skills"><i>03</i><span><b>THE BUILD FORGE</b><u>3D web + sites with a pulse — this one, and MONARCH Concierge. Skills &amp; stack inside.</u></span><s>→</s></a>
-  <a class="fb-door fb-door-rd" href="home.html"><i>04</i><span><b>THE FULL PORTFOLIO</b><u>The scroll film — hero, hall, numbers, letter, contact. Everything, one page.</u></span><s>→</s></a>
-  <p class="fb-note">Best experienced on a desktop — the House runs in real-time 3D.</p>
-</div>
+  <!-- ══════════ 01 · THE EDIT BAY ══════════ -->
+  <section class="j-ch" id="ch1" data-fog="1.0">
+    <div class="j-pin">
+      <div class="j-bg" style="background-image:url('assets/plate-edit.jpg?v=1')" role="img" aria-label="A dark film editing suite with glowing monitor wall, red LED strips and a director's chair"></div>
+      <div class="j-tint j-tint-red" aria-hidden="true"></div>
+      <div class="j-copy j-copy-l j-fade">
+        <p class="j-kick">01 — VIDEO EDITING</p>
+        <h1 class="j-title">CUT TO<br>THE<br><em>BEAT.</em></h1>
+        <p class="j-sub">Films, composites and mattes — locked to the frame.<br>CapCut × FFmpeg · graded clean.</p>
+      </div>
+      <div class="j-shelf j-fade" aria-label="Featured films">
+        <button class="j-film" data-src="media/monarch-portfolio-v5.mp4" data-title="MONARCH — THE MAIN FILM" data-wide="1">
+          <img src="assets/thumbs/th-power.jpg?v=64" alt="MONARCH main portfolio film — the M4" loading="lazy" decoding="async"><span><b>THE MAIN FILM</b><u>01 · 37S</u></span></button>
+        <button class="j-film" data-src="media/paanch.web.mp4" data-title="PAANCH RULES">
+          <img src="assets/thumbs/th-paanch.jpg?v=64" alt="Paanch Rules — Urdu motivational short" loading="lazy" decoding="async"><span><b>PAANCH RULES</b><u>02 · 75S</u></span></button>
+        <button class="j-film" data-src="media/lawone.web.mp4" data-title="MONARCH: LAW ONE">
+          <img src="assets/thumbs/th-lawone.jpg?v=64" alt="Monarch Law One — cinematic law story" loading="lazy" decoding="async"><span><b>LAW ONE</b><u>03 · 63S</u></span></button>
+        <button class="j-film" data-src="media/monarch-01-web.mp4" data-title="MONARCH STUDIO">
+          <img src="assets/thumbs/monarch-01.jpg" alt="MONARCH Studio — projector motion study" loading="lazy" decoding="async"><span><b>MONARCH STUDIO</b><u>04 · 11S</u></span></button>
+        <button class="j-film" data-src="media/monarch-02-web.mp4" data-title="CLARITY IN MOTION">
+          <img src="assets/thumbs/monarch-02.jpg" alt="Clarity in Motion — brand story" loading="lazy" decoding="async"><span><b>CLARITY</b><u>05 · 26S</u></span></button>
+        <button class="j-film" data-src="media/monarch-03-web.mp4" data-title="YOUR CREATIVE PARTNER" data-wide="1">
+          <img src="assets/thumbs/monarch-03.jpg" alt="Your Creative Partner — identity film" loading="lazy" decoding="async"><span><b>CREATIVE PARTNER</b><u>06 · 12S</u></span></button>
+      </div>
+      <p class="j-note mono j-fade">▶ CLICK ANY FILM — IT PLAYS RIGHT HERE</p>
+      <p class="j-cue mono j-fade">SCROLL — THE NEXT ROOM IS WAITING ↓</p>
+    </div>
+  </section>
 
-<!-- ══════════ lightbox — click any screen in the rooms ══════════ -->
-<div id="housePlayer" aria-hidden="true" role="dialog" aria-label="Play film">
-  <div class="hp-bar"><span class="mono" id="hpTitle">FILM</span><button class="mono" id="hpClose">✕ CLOSE [ESC]</button></div>
-  <video id="hpVideo" controls playsinline preload="metadata"></video>
+  <!-- ══════════ 02 · THE RENDER LAB ══════════ -->
+  <section class="j-ch" id="ch2" data-fog="0.92">
+    <div class="j-pin">
+      <div class="j-bg" style="background-image:url('assets/plate-render.jpg?v=1')" role="img" aria-label="A dark 3D rendering lab with glowing preview frames of chrome models on the walls, cool blue light"></div>
+      <div class="j-tint j-tint-blue" aria-hidden="true"></div>
+      <div class="j-copy j-copy-l j-fade">
+        <p class="j-kick j-kick-blue">02 — 3D RENDERING</p>
+        <h1 class="j-title j-title-cold">FRAMES<br>THAT<br><em>BREATHE.</em></h1>
+        <p class="j-sub">MONARCH OS · The Vision — original CG motion studies,<br>built frame by frame.</p>
+      </div>
+      <div class="j-shelf j-shelf-2 j-fade" aria-label="Featured CG studies">
+        <button class="j-film" data-src="media/monarch-reference-06-enhanced.mp4" data-title="MONARCH OS">
+          <img src="assets/thumbs/monarch-06.jpg" alt="MONARCH OS — main frame study" loading="lazy" decoding="async"><span><b>MONARCH OS</b><u>01 · 10S</u></span></button>
+        <button class="j-film" data-src="media/monarch-reference-07-enhanced.mp4" data-title="THE VISION" data-wide="1">
+          <img src="assets/thumbs/monarch-07.jpg" alt="The Vision — MONARCH film still" loading="lazy" decoding="async"><span><b>THE VISION</b><u>02 · 23S</u></span></button>
+        <button class="j-film" data-src="media/monarch-04-web.mp4" data-title="FROM IDEA TO IMPACT">
+          <img src="assets/thumbs/monarch-04.jpg" alt="From Idea to Impact" loading="lazy" decoding="async"><span><b>IDEA → IMPACT</b><u>03 · 37S</u></span></button>
+        <button class="j-film" data-src="media/monarch-05-web.mp4" data-title="WHERE IDEAS BEGIN">
+          <img src="assets/thumbs/monarch-05.jpg" alt="Where Ideas Begin" loading="lazy" decoding="async"><span><b>WHERE IDEAS BEGIN</b><u>04 · 18S</u></span></button>
+      </div>
+      <a class="j-cta mono j-fade" href="mailto:workadilchandio@gmail.com?subject=RENDER%20REEL%20—%20MONARCH">THE FULL RENDER REEL ON REQUEST — workadilchandio@gmail.com ↗</a>
+      <p class="j-note mono j-fade">CG FRAMES SHOWN — SILENT STUDIES · 2026</p>
+    </div>
+  </section>
+
+  <!-- ══════════ 03 · THE BUILD FORGE ══════════ -->
+  <section class="j-ch" id="ch3" data-fog="0.95">
+    <div class="j-pin">
+      <div class="j-bg" style="background-image:url('assets/plate-forge.jpg?v=1')" role="img" aria-label="A phosphor-green terminal workshop with code screens, soldering bench and coiled cables"></div>
+      <div class="j-tint j-tint-green" aria-hidden="true"></div>
+      <div class="j-copy j-copy-l j-fade">
+        <p class="j-kick j-kick-green">03 — WEB DEVELOPMENT</p>
+        <h1 class="j-title j-title-green">SITES<br>WITH<br><em>A PULSE.</em></h1>
+        <p class="j-sub">Hand-built · no build step · yours forever.</p>
+      </div>
+      <div class="j-term j-fade" aria-label="Services, terminal view">
+        <div class="j-term-bar"><i></i><i></i><i></i><span>adil@monarch — services — zsh</span></div>
+        <pre><code><span class="tp">$</span> services --list
+
+<b>EDIT</b>      films cut to the beat — composites, mattes, clean finish
+<b>BUILD</b>     this very site · MONARCH Concierge — zero-key, Groq × Gemini
+<b>AUTOMATE</b>  YT pipelines — research → script → voice → schedule
+
+<span class="tp">$</span> stack --show
+python · javascript · ffmpeg · git · three.js</code></pre>
+        <a class="j-term-link mono" href="https://github.com/adil-chandio" target="_blank" rel="noopener">$ open github.com/adil-chandio ↗</a>
+      </div>
+      <a class="j-cta j-cta-green mono j-fade" href="mailto:workadilchandio@gmail.com?subject=PROJECT%20—%20THE%20MONARCH%20SCROLL">START A PROJECT →</a>
+    </div>
+  </section>
+
+  <!-- ══════════ 04 · THE MESSY MIDDLE (about) ══════════ -->
+  <section class="j-ch" id="ch4" data-fog="0.85">
+    <div class="j-pin">
+      <div class="j-bg" style="background-image:url('assets/plate-about.jpg?v=1')" role="img" aria-label="A warm candle-lit study desk with an open laptop, stacks of books, string lights and rain on the window"></div>
+      <div class="j-tint j-tint-warm" aria-hidden="true"></div>
+      <div class="j-copy j-copy-l j-fade">
+        <p class="j-kick j-kick-warm">04 — ABOUT</p>
+        <h1 class="j-title j-title-warm">THE<br>MESSY<br><em>MIDDLE.</em></h1>
+      </div>
+      <div class="j-about j-fade">
+        <p class="j-story">March 2024 — a second-hand Dell for <b>$400</b>. Two videos took off. The channel <b>monetized in three months</b>. First payout: <b>$700</b>. Then 2025 looped. Then 2026: <b>no distractions</b> — discipline, consistency, mehnat.</p>
+        <ul class="j-receipts mono">
+          <li><b>583K+</b><span>VIEWS / ONE SHORT</span></li>
+          <li><b>74%</b><span>AVG RETENTION</span></li>
+          <li><b>+1.6K</b><span>SUBS / ONE SHORT</span></li>
+        </ul>
+        <img class="j-sig" src="assets/sig-adil.png?v=18" alt="Adil's signature" decoding="async">
+        <div class="j-about-ctas">
+          <a class="j-cta j-cta-warm mono" href="home.html">READ THE FULL STORY + THE LETTER ↗</a>
+          <a class="j-mail mono" href="mailto:workadilchandio@gmail.com">workadilchandio@gmail.com</a>
+        </div>
+        <a class="j-house mono" href="house.html">PREFER THE 3D LOBBY? → THE HOUSE</a>
+      </div>
+      <footer class="j-foot mono">©2026 ADIL CHANDIO — MONARCH<span>®</span> · ADIL-CHANDIO.GITHUB.IO/PORTFOLIO</footer>
+    </div>
+  </section>
+</main>
+
+<!-- lightbox -->
+<div id="jPlayer" aria-hidden="true" role="dialog" aria-label="Play film">
+  <div class="jp-bar"><span class="mono" id="jpTitle">FILM</span><button class="mono" id="jpClose">✕ CLOSE [ESC]</button></div>
+  <video id="jpVideo" controls playsinline preload="metadata"></video>
 </div>
 
 <script src="assets/three.min.js?v=1"></script>
-<script src="assets/house.js?v=1"></script>
+<script src="assets/journey.js?v=1"></script>
 </body>
 </html>

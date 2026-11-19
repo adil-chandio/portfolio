@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The MONARCH House — Adil Chandio</title>
+<meta name="description" content="Step inside the MONARCH House — a 3D lobby by Adil Chandio. Four doors: the Edit Suite (video editing films), the Render Lab (3D rendering), the Build Forge (3D web experiences) and the full portfolio site.">
+<link rel="canonical" href="https://adil-chandio.github.io/portfolio/">
+<meta property="og:title" content="The MONARCH House — Adil Chandio">
+<meta property="og:description" content="A 3D house with four doors: films, renders, webcraft — and the full portfolio behind the last door.">
+<meta property="og:image" content="assets/thumbs/th-power.jpg?v=64">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#050507">
+<link rel="icon" type="image/png" href="assets/logo-64.png?v=14">
+<link rel="apple-touch-icon" href="assets/logo-180.png?v=14">
+<link rel="preload" href="assets/fonts/Manrope-800.ttf" as="font" type="font/ttf" crossorigin>
+<link rel="preload" href="assets/fonts/IBMPlexMono-400.ttf" as="font" type="font/ttf" crossorigin>
+<link rel="stylesheet" href="assets/house.css?v=1">
+</head>
+<body>
+<canvas id="house" aria-hidden="true"></canvas>
+
+<!-- ══════════ DOM HUD — always usable, never trapped ══════════ -->
+<a class="hud-logo" href="home.html" aria-label="MONARCH — open the full portfolio">MONARCH<span>®</span></a>
+<a class="hud-skip" href="home.html">SKIP THE HOUSE <b>ENTER THE SITE ↗</b></a>
+
+<div class="hud-room" id="hudRoom" aria-live="polite">
+  <p class="hud-kick" id="hudKick">THE MONARCH HOUSE</p>
+  <h1 class="hud-name" id="hudName">FOUR DOORS.<br>ONE MIND.</h1>
+  <p class="hud-sub" id="hudSub">Drag to look around · click a door to walk through</p>
+</div>
+
+<nav class="hud-doors" aria-label="Rooms">
+  <button class="hud-door" data-room="edit"><i>01</i><span>EDIT SUITE</span></button>
+  <button class="hud-door" data-room="render"><i>02</i><span>RENDER LAB</span></button>
+  <button class="hud-door" data-room="build"><i>03</i><span>BUILD FORGE</span></button>
+  <button class="hud-door hud-door-rd" data-room="portfolio"><i>04</i><span>THE SITE</span></button>
+</nav>
+
+<button class="hud-back" id="hudBack" hidden>← BACK TO THE HALL</button>
+<p class="hud-esc" aria-hidden="true">ESC — BACK · DRAG — LOOK · CLICK — WALK</p>
+
+<!-- ══════════ static fallback — no WebGL / no JS / potato GPU ══════════ -->
+<div class="fallback" id="fallback">
+  <p class="fb-kick">THE MONARCH HOUSE</p>
+  <h1 class="fb-name">FOUR DOORS.<br><em>ONE MIND.</em></h1>
+  <p class="fb-sub">Pick a door — everything Adil makes lives behind it.</p>
+  <a class="fb-door" href="home.html#work"><i>01</i><span><b>THE EDIT SUITE</b><u>Films cut to the beat — Paanch Rules (583K views), Law One, the main 37s reel.</u></span><s>→</s></a>
+  <a class="fb-door" href="home.html#chWork"><i>02</i><span><b>THE RENDER LAB</b><u>MONARCH OS · The Vision — original CG work. Full render reel on request.</u></span><s>→</s></a>
+  <a class="fb-door" href="home.html#skills"><i>03</i><span><b>THE BUILD FORGE</b><u>3D web + sites with a pulse — this one, and MONARCH Concierge. Skills &amp; stack inside.</u></span><s>→</s></a>
+  <a class="fb-door fb-door-rd" href="home.html"><i>04</i><span><b>THE FULL PORTFOLIO</b><u>The scroll film — hero, hall, numbers, letter, contact. Everything, one page.</u></span><s>→</s></a>
+  <p class="fb-note">Best experienced on a desktop — the House runs in real-time 3D.</p>
+</div>
+
+<!-- ══════════ lightbox — click any screen in the rooms ══════════ -->
+<div id="housePlayer" aria-hidden="true" role="dialog" aria-label="Play film">
+  <div class="hp-bar"><span class="mono" id="hpTitle">FILM</span><button class="mono" id="hpClose">✕ CLOSE [ESC]</button></div>
+  <video id="hpVideo" controls playsinline preload="metadata"></video>
+</div>
+
+<script src="assets/three.min.js?v=1"></script>
+<script src="assets/house.js?v=1"></script>
+</body>
+</html>
