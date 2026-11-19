@@ -38,16 +38,18 @@
 
   /* ── chapters ──────────────────────────────────────────── */
   var vh = window.innerHeight;
-  var IDS = ['ch0', 'ch1', 'ch2', 'ch3', 'ch4', 'ch5'];
-  var COUNTER = ['00 / 05', '01 / 05', '02 / 05', '03 / 05', '04 / 05', '05 / 05'];
-  var FLASH = ['', '#ffffff', '#cfe6ff', '#d5e4ff', '#ffd9a8', '#ff5a3d'];
-  var DUST_COL = [0xcfd4e0, 0x000000, 0x9fe8b8, 0xbfd9ff, 0xffc36b, 0xffb08a];
-  var DUST_OP = [0.55, 0, 0.5, 0.45, 0.5, 0.6];
+  var IDS = ['ch0', 'ch1', 'chroom', 'chrender', 'chforge', 'chcatalog', 'chabout', 'chfinale'];
+  var COUNTER = ['00 / 07', '01 / 07', '02 / 07', '03 / 07', '04 / 07', '05 / 07', '06 / 07', '07 / 07'];
+  var FLASH = ['', '#ffffff', '#e8e4da', '#cfe6ff', '#d5e4ff', '#ffffff', '#ffd9a8', '#ff5a3d'];
+  var DUST_COL = [0xcfd4e0, 0x000000, 0xdde6ff, 0x9fe8b8, 0xbfd9ff, 0x000000, 0xffc36b, 0xffb08a];
+  var DUST_OP = [0.55, 0, 0.35, 0.5, 0.45, 0, 0.5, 0.6];
+  var IS_LIGHT = [0, 1, 0, 0, 0, 1, 0, 0];   /* white chapters: canvas hidden */
 
   var chapters = IDS.map(function (id) {
     var el = document.getElementById(id);
     return {
       el: el,
+      pin: el ? el.querySelector('.j-pin') : null,
       bg: el ? el.querySelector('.j-bg') : null,
       fades: el ? Array.prototype.slice.call(el.querySelectorAll('.j-fade')) : [],
       top: 0, h: 0, p: 0
@@ -116,6 +118,10 @@
     for (var i = 0; i < chapters.length; i++) {
       var c = chapters[i]; if (!c.el) continue;
       c.p = clamp01((y - c.top) / Math.max(1, c.h - vh));
+      if (c.pin) {
+        var dive = 1.05 - 0.05 * easeIO(smooth(0, 0.3, c.p));
+        c.pin.style.transform = 'scale(' + dive.toFixed(4) + ')';
+      }
       var centerOffset = (c.top + c.h / 2) - (y + vh / 2);
       var vis = clamp01(1 - Math.abs(centerOffset) / (vh * 0.78));
       var v = view[i];
@@ -152,7 +158,7 @@
       active = bestIdx;
       if (countEl) countEl.textContent = COUNTER[active];
       CHIPS.forEach(function (b) { b.classList.toggle('on', chapters[active] && b.dataset.go === chapters[active].el.id); });
-      document.body.classList.toggle('light-ch', active === 1);
+      document.body.classList.toggle('light-ch', !!IS_LIGHT[active]);
       setVids(true);
     }
 
@@ -305,7 +311,7 @@
         var dt = Math.min(0.05, t - tPrev); tPrev = t;
 
         /* white chapter: canvas hidden (DOM white takes over) */
-        canvas.style.visibility = (active === 1) ? 'hidden' : 'visible';
+        canvas.style.visibility = IS_LIGHT[active] ? 'hidden' : 'visible';
 
         /* hero: portrait drifts, scatters, dissolves as its chapter progresses */
         var p0 = chapters[0].p || 0;

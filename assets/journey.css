@@ -72,9 +72,10 @@ body.light-ch .j-chip:hover{color:#111;background:rgba(227,32,47,.1)}
 /* ══════════ chapters ══════════════════════════════════════ */
 .j-ch{position:relative;height:225vh}
 #ch0{height:265vh}
-#ch2{height:270vh}
-#ch5{height:205vh}
-.j-pin{position:sticky;top:0;height:100svh;overflow:hidden;isolation:isolate}
+#chroom{height:240vh}
+#chrender{height:270vh}
+#chfinale{height:205vh}
+.j-pin{position:sticky;top:0;height:100svh;overflow:hidden;isolation:isolate;will-change:transform}
 .j-bg{position:absolute;inset:-8%;z-index:0;background-size:cover;background-position:center;
   will-change:transform;transform:scale(1.35) translate3d(0,0,0)}
 .j-hero-fallback,.j-gl-fallback{display:none}
@@ -157,6 +158,67 @@ body.no-gl .j-hero-fallback,body.no-gl .j-gl-fallback{display:block}
 .j-cta-warm:hover{background:#e3202f;border-color:#ff5a3d;color:#fff}
 @media (max-width:860px){.j-cta{bottom:19.5vh;font-size:8.5px;padding:12px 16px;max-width:88vw}}
 
+/* ── the showcase room (dark 3D, wall screens) ── */
+.j-room{background:radial-gradient(90% 60% at 50% 0%, #101116 0%, #070709 58%, #050507 100%)}
+.j-room-spot{position:absolute;z-index:1;top:0;width:46%;height:72%;pointer-events:none;
+  background:radial-gradient(50% 62% at 50% 0%, rgba(214,222,240,.15), transparent 72%)}
+.j-room-spot-a{left:5%}
+.j-room-spot-b{right:5%}
+.j-room-wall{position:absolute;z-index:3;left:50%;top:31%;transform:translateX(-50%);
+  display:flex;gap:4vw;align-items:center;perspective:1300px}
+.j-rscreen{position:relative;flex:0 0 auto;width:clamp(148px,20vw,320px);cursor:pointer;
+  transform:rotateY(var(--ry,0deg));transform-style:preserve-3d;transition:transform .5s cubic-bezier(.16,1,.3,1)}
+.j-rscreen:hover{transform:rotateY(var(--ry,0deg)) translateZ(26px)}
+.j-rscreen img{width:100%;aspect-ratio:16/10;object-fit:cover;display:block;background:#000;
+  border:1px solid rgba(239,235,226,.22);
+  box-shadow:0 44px 90px rgba(0,0,0,.85), 0 0 46px rgba(170,200,255,.06);
+  animation:jflick 7s ease-in-out infinite}
+.j-rscreen-mid img{animation-delay:2.3s}
+.j-rscreen:nth-child(3) img{animation-delay:4.1s}
+@keyframes jflick{0%,44%,52%,100%{opacity:1}48%{opacity:.84}}
+.j-rscreen:hover img{border-color:rgba(227,32,47,.65);box-shadow:0 50px 110px rgba(0,0,0,.9), 0 0 74px rgba(227,32,47,.28)}
+.j-rscreen::after{content:"";position:absolute;left:10%;right:10%;bottom:-30px;height:16px;
+  background:radial-gradient(50% 100% at 50% 0%, rgba(0,0,0,.8), transparent 78%)}
+.j-rscan{position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg, rgba(190,212,255,.12), transparent 20%)}
+.j-room-floor{position:absolute;z-index:2;left:0;right:0;bottom:0;height:36%;pointer-events:none;
+  background:linear-gradient(180deg, rgba(18,20,26,0) 0%, rgba(13,14,19,.88) 46%, #0a0b0e 100%)}
+.j-room-floor::before{content:"";position:absolute;left:12%;right:12%;top:26%;height:2px;
+  background:linear-gradient(90deg, transparent, rgba(200,214,240,.14), transparent)}
+.j-room-meta{position:absolute;z-index:4;left:clamp(18px,5vw,84px);bottom:15vh;display:flex;gap:4.5vw;max-width:min(700px,84vw)}
+.j-room-meta div{display:flex;flex-direction:column;gap:9px}
+.j-room-meta b{font-size:8.5px;letter-spacing:.34em;color:#efebe2}
+.j-room-meta span{font-size:8.5px;letter-spacing:.18em;line-height:1.95;color:rgba(239,235,226,.5)}
+@media (max-width:860px){
+  .j-room-wall{gap:10px;top:26%}
+  .j-rscreen{width:170px}
+  .j-room-meta{gap:16px;bottom:12vh}
+  .j-room-meta b{font-size:7.5px}.j-room-meta span{font-size:7.5px}
+}
+
+/* ── catalogue (bright, tilted magazine) ── */
+.j-mag{position:absolute;z-index:3;left:50%;top:54%;display:block;
+  transform:translate(-50%,-50%) perspective(1400px) rotateY(-13deg) rotateX(5deg);
+  width:clamp(230px,32vw,440px);cursor:pointer;transition:transform .6s cubic-bezier(.16,1,.3,1)}
+.j-mag:hover{transform:translate(-50%,-50%) perspective(1400px) rotateY(-4deg) rotateX(2deg) translateY(-12px)}
+.j-mag-page{position:absolute;inset:0;border-radius:2px}
+.j-mag-page-a{transform:translateZ(-10px) translateY(9px) rotateY(2.5deg);background:#e7e3d8}
+.j-mag-page-b{transform:translateZ(-20px) translateY(18px) rotateY(5deg);background:#d9d4c7}
+.j-mag-cover{position:relative;display:flex;flex-direction:column;justify-content:space-between;
+  min-height:calc(clamp(230px,32vw,440px) * 1.34);
+  background:linear-gradient(160deg,#18181d 0%,#0c0c10 62%);
+  border:1px solid #27272d;border-radius:2px;padding:clamp(18px,2.6vw,34px);
+  box-shadow:0 54px 110px rgba(40,32,18,.42)}
+.j-mag-cover::before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;background:#e3202f;border-radius:2px 0 0 2px}
+.j-mag-word{font:800 clamp(2.1rem,5.2vw,4.4rem)/1 'Manrope';letter-spacing:.02em;color:#f2efe6}
+.j-mag-word span{color:#e3202f;font-size:.42em;vertical-align:super}
+.j-mag-sub{font-size:8.5px;letter-spacing:.3em;color:rgba(242,239,230,.62)}
+.j-mag-foot{font-size:7.5px;letter-spacing:.24em;color:rgba(242,239,230,.4)}
+@media (max-width:860px){
+  .j-mag{top:56%}
+  .j-copy-hero-light{top:9%}
+}
+
 /* ── terminal panel ── */
 .j-term{position:absolute;z-index:3;left:clamp(18px,4.6vw,84px);bottom:26vh;width:min(540px,90vw);
   border:1px solid rgba(61,255,138,.3);border-radius:10px;overflow:hidden;
@@ -194,8 +256,8 @@ body.no-gl .j-hero-fallback,body.no-gl .j-gl-fallback{display:block}
 .j-finale{position:absolute;z-index:3;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
   text-align:center;gap:20px;padding:0 20px}
 .j-fin-kick{font-size:9px;letter-spacing:.5em;color:rgba(255,217,207,.7)}
-.j-fin-title{margin:0;font:800 clamp(2.2rem,6.4vw,5rem)/1.02 'Manrope';letter-spacing:-.02em;text-transform:uppercase;color:#fff;
-  text-shadow:0 0 60px rgba(255,45,30,.5)}
+.j-fin-title{margin:0;font:800 clamp(2.5rem,8vw,6.4rem)/1.0 'Manrope';letter-spacing:-.025em;text-transform:uppercase;color:#fff;
+  text-shadow:0 0 70px rgba(255,45,30,.55)}
 .j-fin-title em{font-style:normal;color:transparent;-webkit-text-stroke:1.4px #ffd9cf}
 .j-fin-sub{max-width:52ch;font:400 13.5px/1.7 Manrope;color:rgba(255,235,228,.85);text-shadow:0 2px 16px rgba(0,0,0,.6)}
 .j-fin-links{display:flex;gap:14px;align-items:center;flex-wrap:wrap;justify-content:center;
