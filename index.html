@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>MONARCH — The Scroll | Adil Chandio</title>
-<meta name="description" content="Scroll through the world of Adil Chandio — a point-cloud hero, six films cut to the beat, a 3D render lab, a terminal forge, the messy middle, and a red alley that ends with your next project.">
+<meta name="description" content="Scroll through the world of Adil Chandio — a point-cloud hero, selected work, the showcase room, a 3D render tunnel, a terminal forge, the catalogue, the messy middle, and a red alley that ends with your next project.">
 <link rel="canonical" href="https://adil-chandio.github.io/portfolio/">
 <meta property="og:title" content="MONARCH — The Scroll | Adil Chandio">
 <meta property="og:description" content="A scroll-driven cinematic world: films, CG, web — and the messy middle behind all of it.">
@@ -16,8 +16,8 @@
 <link rel="apple-touch-icon" href="assets/logo-180.png?v=14">
 <link rel="preload" href="assets/fonts/Manrope-800.ttf" as="font" type="font/ttf" crossorigin>
 <link rel="preload" href="assets/fonts/IBMPlexMono-400.ttf" as="font" type="font/ttf" crossorigin>
-<link rel="preload" as="image" href="assets/plate-hero.jpg?v=1">
-<link rel="stylesheet" href="assets/journey.css?v=4">
+<link rel="preload" as="image" href="assets/poster-cg-void.jpg?v=1">
+<link rel="stylesheet" href="assets/journey.css?v=5">
 </head>
 <body>
 
@@ -36,21 +36,21 @@
 <a class="j-logo" href="home.html" aria-label="MONARCH — open the full portfolio">MONARCH<span>®</span></a>
 <div class="j-top-right">
   <a class="j-talk" href="mailto:workadilchandio@gmail.com?subject=PROJECT%20—%20THE%20MONARCH%20SCROLL">LET'S TALK →</a>
-  <a class="j-skip mono" href="home.html">THE FULL SITE ↗</a>
+  <a class="j-skip mono" href="home.html">MENU — THE FULL SITE ↗</a>
 </div>
-<p class="j-count mono" id="jCount" aria-hidden="true">00 / 05</p>
+<p class="j-count mono" id="jCount" aria-hidden="true">00 / 07</p>
 
 <nav class="j-chips" aria-label="Chapters">
-  <button class="j-chip" data-go="ch1"><i>01</i><span>EDIT</span></button>
-  <button class="j-chip" data-go="ch2"><i>02</i><span>RENDER</span></button>
-  <button class="j-chip" data-go="ch3"><i>03</i><span>FORGE</span></button>
-  <button class="j-chip" data-go="ch4"><i>04</i><span>ABOUT</span></button>
-  <button class="j-chip j-chip-rd" data-go="ch5"><i>05</i><span>TALK</span></button>
+  <button class="j-chip" data-go="ch1"><i>01</i><span>WORK</span></button>
+  <button class="j-chip" data-go="chrender"><i>02</i><span>RENDER</span></button>
+  <button class="j-chip" data-go="chforge"><i>03</i><span>FORGE</span></button>
+  <button class="j-chip" data-go="chcatalog"><i>04</i><span>SITE</span></button>
+  <button class="j-chip j-chip-rd" data-go="chfinale"><i>05</i><span>TALK</span></button>
 </nav>
 
 <main id="jScroll">
 
-  <!-- ══════════ 00 · HERO — grid + point-cloud portrait (GL) ══════════ -->
+  <!-- ══════════ 00 · HERO — grid void + point-cloud portrait ══════════ -->
   <section class="j-ch" id="ch0" data-fog="1">
     <div class="j-pin">
       <div class="j-bg j-hero-fallback" style="background-image:url('assets/plate-hero.jpg?v=1')" role="img" aria-label="A dark figure being scanned by a grid of light"></div>
@@ -61,7 +61,7 @@
     </div>
   </section>
 
-  <!-- ══════════ 01 · SELECTED WORK (bright) ══════════ -->
+  <!-- ══════════ 01 · SELECTED WORK (bright, tilted 3D covers) ══════════ -->
   <section class="j-ch j-ch-light" id="ch1" data-fog="1">
     <div class="j-pin">
       <div class="j-copy j-copy-hero-light j-fade">
@@ -98,12 +98,41 @@
     </div>
   </section>
 
-  <!-- ══════════ 02 · RENDER LAB (machine tunnel flight) ══════════ -->
-  <section class="j-ch" id="ch2" data-fog="0.94">
-    <div class="j-pin">
-      <div class="j-bg j-bg-fly" style="background-image:url('assets/plate-machines.jpg?v=1')" role="img" aria-label="A dark industrial hall with two symmetrical rows of white robotic arms running to a vanishing point"></div>
-      <div class="j-bg j-gl-fallback" style="background-image:url('assets/plate-machines.jpg?v=1')" role="img" aria-label="A dark industrial hall with two symmetrical rows of white robotic arms running to a vanishing point"><video class="j-vid" src="media/cg-tunnel.mp4?v=1" autoplay muted loop playsinline preload="metadata" poster="assets/poster-cg-tunnel.jpg?v=1" aria-hidden="true"></video>
+  <!-- ══════════ 02 · THE SHOWCASE ROOM (dark 3D, wall screens) ══════════ -->
+  <section class="j-ch" id="chroom" data-fog="1" aria-label="The showcase room — three featured films on a wall of screens">
+    <div class="j-pin j-room">
+      <div class="j-room-spot j-room-spot-a" aria-hidden="true"></div>
+      <div class="j-room-spot j-room-spot-b" aria-hidden="true"></div>
+      <div class="j-room-wall" aria-hidden="false">
+        <button class="j-rscreen" data-src="media/monarch-portfolio-v5.mp4" data-title="MONARCH — THE MAIN FILM" style="--ry:-9deg">
+          <img src="assets/thumbs/th-power.jpg?v=64" alt="The main film on a gallery screen" loading="lazy" decoding="async">
+          <span class="j-rscan" aria-hidden="true"></span>
+        </button>
+        <button class="j-rscreen j-rscreen-mid" data-src="media/paanch.web.mp4" data-title="PAANCH RULES" style="--ry:0deg">
+          <img src="assets/thumbs/th-paanch.jpg?v=64" alt="Paanch Rules on a gallery screen" loading="lazy" decoding="async">
+          <span class="j-rscan" aria-hidden="true"></span>
+        </button>
+        <button class="j-rscreen" data-src="media/lawone.web.mp4" data-title="MONARCH: LAW ONE" style="--ry:9deg">
+          <img src="assets/thumbs/th-lawone.jpg?v=64" alt="Law One on a gallery screen" loading="lazy" decoding="async">
+          <span class="j-rscan" aria-hidden="true"></span>
+        </button>
       </div>
+      <div class="j-room-floor" aria-hidden="true"></div>
+      <div class="j-room-meta mono j-fade">
+        <div><b>PROJECT</b><span>MONARCH —<br>SELECTED FILMS</span></div>
+        <div><b>INFO</b><span>FILM · COMPOSITE ·<br>GRADE · MOTION</span></div>
+        <div><b>ROLE</b><span>EDIT · SOUND ·<br>DIRECTION</span></div>
+      </div>
+      <div class="j-corner j-corner-l mono">THE SHOWCASE ROOM</div>
+      <div class="j-corner j-corner-r mono">CLICK A SCREEN — IT PLAYS</div>
+    </div>
+  </section>
+
+  <!-- ══════════ 03 · RENDER LAB (machine tunnel flight) ══════════ -->
+  <section class="j-ch" id="chrender" data-fog="0.94">
+    <div class="j-pin">
+      <div class="j-bg j-gl-fallback" style="background-image:url('assets/plate-machines.jpg?v=1')" role="img" aria-label="A dark industrial hall with two symmetrical rows of white robotic arms running to a vanishing point"></div>
+      <video class="j-vid" src="media/cg-tunnel.mp4?v=1" autoplay muted loop playsinline preload="metadata" poster="assets/poster-cg-tunnel.jpg?v=1" aria-hidden="true"></video>
       <div class="j-tint j-tint-cold" aria-hidden="true"></div>
       <div class="j-copy j-copy-hero j-fade">
         <p class="j-kick j-kick-green">02 — 3D RENDERING</p>
@@ -119,12 +148,11 @@
     </div>
   </section>
 
-  <!-- ══════════ 03 · BUILD FORGE (blue corridor) ══════════ -->
-  <section class="j-ch" id="ch3" data-fog="0.95">
+  <!-- ══════════ 04 · BUILD FORGE (blue corridor) ══════════ -->
+  <section class="j-ch" id="chforge" data-fog="0.95">
     <div class="j-pin">
-      <div class="j-bg j-bg-fly" style="background-image:url('assets/plate-flight.jpg?v=1')" role="img" aria-label="Flying down a narrow dark blue industrial street with a glowing light in the center distance"></div>
-      <div class="j-bg j-gl-fallback" style="background-image:url('assets/plate-flight.jpg?v=1')" role="img" aria-label="Flying down a narrow dark blue industrial street with a glowing light in the center distance"><video class="j-vid" src="media/cg-corridor.mp4?v=1" autoplay muted loop playsinline preload="metadata" poster="assets/poster-cg-corridor.jpg?v=1" aria-hidden="true"></video>
-      </div>
+      <div class="j-bg j-gl-fallback" style="background-image:url('assets/plate-flight.jpg?v=1')" role="img" aria-label="Flying down a narrow dark blue industrial street with a glowing light in the center distance"></div>
+      <video class="j-vid" src="media/cg-corridor.mp4?v=1" autoplay muted loop playsinline preload="metadata" poster="assets/poster-cg-corridor.jpg?v=1" aria-hidden="true"></video>
       <div class="j-tint j-tint-green" aria-hidden="true"></div>
       <div class="j-copy j-copy-hero j-fade">
         <p class="j-kick j-kick-green">03 — WEB DEVELOPMENT</p>
@@ -146,14 +174,34 @@ python · javascript · ffmpeg · git · three.js</code></pre>
     </div>
   </section>
 
-  <!-- ══════════ 04 · THE MESSY MIDDLE (about) ══════════ -->
-  <section class="j-ch" id="ch4" data-fog="0.85">
+  <!-- ══════════ 05 · CATALOGUE (bright, tilted magazine) ══════════ -->
+  <section class="j-ch j-ch-light" id="chcatalog" data-fog="1">
     <div class="j-pin">
-      <div class="j-bg" style="background-image:url('assets/plate-about.jpg?v=1')" role="img" aria-label="A warm candle-lit study desk with an open laptop, stacks of books, string lights and rain on the window"><video class="j-vid" src="media/cg-study.mp4?v=1" autoplay muted loop playsinline preload="metadata" poster="assets/poster-cg-study.jpg?v=1" aria-hidden="true"></video>
+      <div class="j-copy j-copy-hero-light j-fade">
+        <p class="j-kick j-kick-ink">04 — THE SITE</p>
+        <h1 class="j-title j-title-ink">CATALOGUE.</h1>
       </div>
+      <div class="j-fade"><a class="j-mag" href="home.html" aria-label="Open the full portfolio site">
+        <span class="j-mag-page j-mag-page-b" aria-hidden="true"></span>
+        <span class="j-mag-page j-mag-page-a" aria-hidden="true"></span>
+        <span class="j-mag-cover">
+          <span class="j-mag-word">MONARCH<span>®</span></span>
+          <span class="j-mag-sub mono">THE FULL PORTFOLIO — 2026 EDITION</span>
+          <span class="j-mag-foot mono">HERO · HALL · NUMBERS · LETTER · CONTACT</span>
+        </span>
+      </a></div>
+      <p class="j-note j-note-ink mono j-fade">OPEN THE FULL SITE ↗ — EVERYTHING, ONE PAGE</p>
+    </div>
+  </section>
+
+  <!-- ══════════ 06 · THE MESSY MIDDLE (about) ══════════ -->
+  <section class="j-ch" id="chabout" data-fog="0.85">
+    <div class="j-pin">
+      <div class="j-bg" style="background-image:url('assets/plate-about.jpg?v=1')" role="img" aria-label="A warm candle-lit study desk with an open laptop, stacks of books, string lights and rain on the window"></div>
+      <video class="j-vid" src="media/cg-study.mp4?v=1" autoplay muted loop playsinline preload="metadata" poster="assets/poster-cg-study.jpg?v=1" aria-hidden="true"></video>
       <div class="j-tint j-tint-warm" aria-hidden="true"></div>
       <div class="j-copy j-copy-hero j-fade">
-        <p class="j-kick j-kick-warm">04 — ABOUT</p>
+        <p class="j-kick j-kick-warm">05 — ABOUT</p>
         <h1 class="j-title j-title-warm">THE<br>MESSY<br><em>MIDDLE.</em></h1>
       </div>
       <div class="j-about j-fade">
@@ -164,24 +212,19 @@ python · javascript · ffmpeg · git · three.js</code></pre>
           <li><b>+1.6K</b><span>SUBS / ONE SHORT</span></li>
         </ul>
         <img class="j-sig" src="assets/sig-adil.png?v=18" alt="Adil's signature" decoding="async">
-        <div class="j-about-ctas">
-          <a class="j-cta j-cta-warm mono" href="home.html">READ THE FULL STORY + THE LETTER ↗</a>
-          <a class="j-mail mono" href="mailto:workadilchandio@gmail.com">workadilchandio@gmail.com</a>
-        </div>
-        <a class="j-house mono" href="house.html">PREFER THE 3D LOBBY? → THE HOUSE</a>
+        <a class="j-mail mono" href="mailto:workadilchandio@gmail.com">workadilchandio@gmail.com</a>
       </div>
     </div>
   </section>
 
-  <!-- ══════════ 05 · RED ALLEY — LET'S TALK ══════════ -->
-  <section class="j-ch" id="ch5" data-fog="0.9">
+  <!-- ══════════ 07 · RED ALLEY — LET'S TALK ══════════ -->
+  <section class="j-ch" id="chfinale" data-fog="0.9">
     <div class="j-pin">
-      <div class="j-bg j-bg-fly" style="background-image:url('assets/plate-alley.jpg?v=1')" role="img" aria-label="A narrow old industrial alley at night soaked in deep red light, lanterns hanging on both sides"></div>
-      <div class="j-bg j-gl-fallback" style="background-image:url('assets/plate-alley.jpg?v=1')" role="img" aria-label="A narrow old industrial alley at night soaked in deep red light, lanterns hanging on both sides"><video class="j-vid" src="media/cg-alley.mp4?v=1" autoplay muted loop playsinline preload="metadata" poster="assets/poster-cg-alley.jpg?v=1" aria-hidden="true"></video>
-      </div>
+      <div class="j-bg j-gl-fallback" style="background-image:url('assets/plate-alley.jpg?v=1')" role="img" aria-label="A narrow old industrial alley at night soaked in deep red light, lanterns hanging on both sides"></div>
+      <video class="j-vid" src="media/cg-alley.mp4?v=1" autoplay muted loop playsinline preload="metadata" poster="assets/poster-cg-alley.jpg?v=1" aria-hidden="true"></video>
       <div class="j-tint j-tint-red" aria-hidden="true"></div>
       <div class="j-finale j-fade">
-        <p class="j-fin-kick mono">05 — THE LAST ROOM</p>
+        <p class="j-fin-kick mono">06 — THE LAST ROOM</p>
         <h2 class="j-fin-title">LET'S TALK ABOUT<br><em>YOUR NEXT PROJECT</em></h2>
         <p class="j-fin-sub">Have an idea? Bring it. A film, a render, a site that needs a pulse — I'll show up with a plan.</p>
         <div class="j-fin-links mono">
@@ -205,6 +248,6 @@ python · javascript · ffmpeg · git · three.js</code></pre>
 </div>
 
 <script src="assets/three.min.js?v=1"></script>
-<script src="assets/journey.js?v=5"></script>
+<script src="assets/journey.js?v=6"></script>
 </body>
 </html>
