@@ -2,3 +2,7 @@
 # Python bytecode (local tooling)
 __pycache__/
 *.pyc
+
+# Local analysis + reference downloads (never ship)
+.analysis/
+google_drive/
