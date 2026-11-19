@@ -90,19 +90,21 @@
       } else if (!v.paused) { v.pause(); }
     }
   }
-  /* soft crossfade at the loop point */
+  /* videos keep the native loop attribute — the browser loops them,
+     so a clip can NEVER freeze mid-journey */
   vids.forEach(function (v) {
     if (!v) return;
-    v.removeAttribute('loop');
-    v.addEventListener('ended', function () {
-      v.classList.add('j-dip');
-      v.currentTime = 0;
-      v.play().catch(function () {});
-    });
-    v.addEventListener('animationend', function () { v.classList.remove('j-dip'); });
     if (reduced) { v.removeAttribute('autoplay'); v.pause(); }
   });
   document.addEventListener('visibilitychange', setVids);
+
+  /* watchdog: if the active clip ever pauses for any reason
+     (browser quirk, decode hiccup), restart it within 2.5s */
+  window.setInterval(function () {
+    if (document.hidden || lightboxOpen || reduced) return;
+    var v = vids[active];
+    if (v && v.paused) v.play().catch(function () {});
+  }, 2500);
 
   function frame() {
     requestAnimationFrame(frame);
