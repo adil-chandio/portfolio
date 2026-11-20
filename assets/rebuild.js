@@ -71,9 +71,30 @@
     window.dispatchEvent(new CustomEvent('monarch:rebuild-end', { detail: { completed } }));
   }
   function collectTargets() {
-    // Include every native reveal and the important non-reveal page components.
-    // A selected ancestor owns its children, so nested elements never flash ahead.
-    const selector = 'main [data-rv], main .hero-wm, main .hero-car, main .stage-tags, main .marquee, main .work-swipe, main .work-plank, main .sol-flag, main blockquote, main .timeline li, main .wm, footer';
+    // Include every native reveal AND every visible content block, so the
+    // cursors build and arrange the ENTIRE site — hero, work, gallery UI,
+    // proof, who-we-are, alley and contact. A selected ancestor owns its
+    // children, so nested elements never flash ahead.
+    const selector = [
+      'main [data-rv], main .hero-wm, main .hero-car, main .stage-tags, main .marquee, main .work-swipe, main .work-plank, main .sol-flag, main blockquote, main .timeline li, main .wm',
+      // GL hero — every line of the opening is built, not just the film
+      'main .glh-side, main .glh-caps, main .glh-kick, main .glh-name, main .glh-tag, main .glh-row, main .glh-ctas, main .glh-status, main .glh-cue',
+      // portfolio hero
+      'main .hero-eye, main .hero-lede-fly, main .hero-meta',
+      // about + skills
+      'main .about-lede, main .about-body, main .skill-grid li',
+      // work — head, index, every cover card, every stat, every grid card
+      'main .lw-kick, main .lw-head h2, main .lw-idx, main .lw-card, main .lw-stat, main .work-card, main .work-more',
+      // gallery UI (the 3D runway itself is WebGL, its chrome is built)
+      'main .gal-hint, main .gal-label, main .gal-foot',
+      // proof
+      'main .proof-lede, main .stats li, main .proof-src',
+      // who we work with
+      'main .who-kick, main .who-body, main .who-learn, main .who-row',
+      // the alley
+      'main .alley-kick, main .alley-sub, main .alley-mail, main .alley-scroll',
+      'footer'
+    ].join(', ');
     const all = Array.from(document.querySelectorAll(selector));
     const chosen = new Set(all);
     return all.filter(el => {
