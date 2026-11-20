@@ -30,7 +30,7 @@
   var lite30 = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 760;
   var renderer;
   try {
-    renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: !lite30, powerPreference: 'high-performance' });
+    renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: false, powerPreference: 'high-performance' });
   } catch (e) { failSoft(); return; }
 
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, lite30 ? 1.25 : 1.5));
@@ -386,9 +386,6 @@
   scene.add(key); scene.add(key.target);
   var fillRed = new THREE.PointLight(0xff2b36, 32, 30, 1.9);
   scene.add(fillRed);
-  var heroLight = new THREE.PointLight(0xff2b36, 42, 20, 1.9);
-  heroLight.position.set(0, 4.4, 1.6);
-  scene.add(heroLight);
   var gateLight = new THREE.PointLight(0xff3a26, 130, 60, 1.8);
   gateLight.position.set(0, 5.2, -149);
   scene.add(gateLight);
@@ -410,8 +407,8 @@
     scene.add(pts);
     return { pts: pts, mat: mat };
   }
-  var dustFar = makeDust(lite30 ? 170 : 520, 9.5, 0.15, 6.7, -4, -165, 0.07, 0.34);
-  var dustMid = makeDust(lite30 ? 90 : 300, 6.9, 0.1, 6.5, -6, -155, 0.12, 0.42);
+  var dustFar = makeDust(lite30 ? 150 : 420, 9.5, 0.15, 6.7, -4, -165, 0.07, 0.34);
+  var dustMid = makeDust(lite30 ? 80 : 240, 6.9, 0.1, 6.5, -6, -155, 0.12, 0.42);
   var dustNear = makeDust(lite30 ? 10 : 26, 8.5, 0.35, 5.8, -2, -75, 1.0, 0.15);
 
   var shaftRigs = [];
@@ -523,21 +520,24 @@
 
   /* ── mouse + resize ───────────────────────────────────────── */
   var mx = 0, my = 0, mxS = 0, myS = 0;
+  function poke() { lastAct = performance.now() / 1000; }
   window.addEventListener('mousemove', function (e) {
     mx = (e.clientX / window.innerWidth) * 2 - 1;
     my = (e.clientY / window.innerHeight) * 2 - 1;
+    poke();
   }, { passive: true });
+  window.addEventListener('scroll', poke, { passive: true });
 
   window.addEventListener('resize', function () {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    applySize();
     metrics = docMetrics();
   });
 
   /* ── reaction: pulses, ripples, screen clicks ─────────────── */
   var pulse = 0, dustFarBase = 0.34;
-  window.addEventListener('monarch:pulse', function () { pulse = 1; });
+  window.addEventListener('monarch:pulse', function () { pulse = 1; lastAct = performance.now() / 1000; });
   var ripples = [];
   var ripGeo = new THREE.PlaneGeometry(1, 1);
 
@@ -574,16 +574,25 @@
     window.setTimeout(function () { plV.play().catch(function () {}); }, 80);
   });
 
-  /* ── the butter ladder: four quality levels auto-stepped by
-       frame time. Starts one notch down for instant smoothness,
-       climbs to full quality only when the machine is proven stable. */
+  /* ── the butter ladder: the SAME photorealistic hall, four ways
+       of spending pixels. The big trick: it renders at a FRACTION of
+       screen resolution and the browser bilinear-upscales — in a
+       foggy, soft-lit scene the upscale is invisible, but pixel work
+       drops 40-75%. L0 full · L1 0.8× · L2 0.65×+30fps+no shadow
+       · L3 0.5×+30fps. Starts at L1 for instant smoothness and only
+       climbs to full when the machine proves it can hold 60fps. */
   var QL = 1, lastQL = 0, eco = false;
-  var dprC = lite30 ? [1.25, 1.0, 0.9, 0.9] : [1.5, 1.1, 0.95, 0.9];
+  var SC = [1.0, 0.8, 0.65, 0.5];
+  var DPRM = lite30 ? [1.25, 1.0, 0.9, 0.9] : [1.5, 1.25, 1.0, 0.9];
   var shadowZ = 1e9;
+  var lastAct = performance.now() / 1000;
+  function applySize() {
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, DPRM[QL]));
+    renderer.setSize(Math.max(2, Math.round(window.innerWidth * SC[QL])), Math.max(2, Math.round(window.innerHeight * SC[QL])), false);
+  }
   function applyQ() {
     eco = QL >= 2;
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, dprC[QL]));
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    applySize();
     dustFarBase = [0.34, 0.24, 0.16, 0.14][QL];
     var sm = QL === 0 ? (lite30 ? 512 : 1024) : (QL === 1 ? (lite30 ? 384 : 512) : 0);
     if (sm > 0) {
@@ -615,7 +624,13 @@
 
   function tick() {
     requestAnimationFrame(tick);
-    if (lite30 || QL === 3) { var lf = performance.now() / 1000; if (lf - lastLiteFrame < 0.032) return; lastLiteFrame = lf; }
+    /* frame gate: 30fps cap on weak levels, and an idle sleep — when
+       nothing moves (no scroll, no mouse, no pulse) the hall eases to
+       15fps; the first touch wakes it to full rate instantly */
+    var nowS = performance.now() / 1000;
+    var gate = (lite30 || QL >= 2) ? 0.032 : (nowS - lastAct > 1.4 ? 0.033 : 0);
+    if (gate && nowS - lastLiteFrame < gate) return;
+    lastLiteFrame = nowS;
     if (document.hidden || (plEl && plEl.classList.contains('on'))) { tPrev = performance.now() / 1000; tRawPrev = 0; return; }
     var t = performance.now() / 1000;
     var rawMs = tRawPrev ? (t - tRawPrev) * 1000 : 16; tRawPrev = t;
@@ -630,7 +645,7 @@
 
     var maxScroll = Math.max(1, metrics.docH - metrics.vh);
     var target = Math.max(0, Math.min(1, window.scrollY / maxScroll));
-    scrollCur += (target - scrollCur) * (reduced ? 1 : 0.075);
+    scrollCur += (target - scrollCur) * (reduced ? 1 : (1 - Math.pow(0.925, dt * 60)));
     var prog = scrollCur;
 
     /* camera rail + finale crane */
@@ -651,7 +666,7 @@
       var fovT = 56 + Math.sin(prog * Math.PI * 3.4) * 2.6;
       if (Math.abs(camera.fov - fovT) > 0.05) { camera.fov = fovT; camera.updateProjectionMatrix(); }
     }
-    mxS += (mx - mxS) * 0.06; myS += (my - myS) * 0.06;
+    var mk = 1 - Math.pow(0.94, dt * 60); mxS += (mx - mxS) * mk; myS += (my - myS) * mk;
 
     /* atmosphere from chapter keyframes */
     var c = colorsAt(prog, cOut);
@@ -705,7 +720,7 @@
     /* hero zone: real lights fade with distance */
     var heroVis = Math.max(0, Math.min(1, 1 - (-camZ) / 17));
     heroGroup.visible = heroVis > 0.02;
-    heroLight.intensity = 42 * heroVis * fl;
+
     portrait.visible = heroVis > 0.02;
     if (portrait.visible) {
       portrait.position.y = Math.sin(t * 0.6) * 0.14;
