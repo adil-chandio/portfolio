@@ -264,6 +264,7 @@
               setTimeout(() => pulse.remove(), 700);
               markRevealed(t.el); clearTarget(t); t.state='done'; t.actor=null; a.target=null;
               tone(523.25,.09,'sine',.02); tone(783.99,.15,'sine',.018,.06);
+              window.dispatchEvent(new CustomEvent('monarch:pulse'));
             }
           }
         } else if (!r.paused) {

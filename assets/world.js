@@ -215,6 +215,27 @@
   })();
   scene.add(portrait);
 
+  /* ── hero: stage glow + the red orbit rings ──────────────── */
+  var stageGlowMat = new THREE.MeshBasicMaterial({ map: glowTex, color: 0xff2b36, transparent: true, opacity: 0.22, depthWrite: false, blending: THREE.AdditiveBlending });
+  var stageGlow = new THREE.Mesh(new THREE.PlaneGeometry(12, 12), stageGlowMat);
+  stageGlow.rotation.x = -Math.PI / 2;
+  stageGlow.position.set(0, 0.03, 1.8);
+  scene.add(stageGlow);
+
+  var ringMat = new THREE.MeshBasicMaterial({ color: 0xff2b36, transparent: true, opacity: 0.32, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending });
+  var ring1 = new THREE.Mesh(new THREE.RingGeometry(2.7, 2.84, 64), ringMat);
+  ring1.position.set(0, 1.6, -0.6);
+  scene.add(ring1);
+  var ring2 = new THREE.Mesh(new THREE.RingGeometry(3.55, 3.63, 64), ringMat);
+  ring2.position.set(0, 1.6, -0.85);
+  scene.add(ring2);
+
+  /* ── finale: the wall of light the camera cranes into ────── */
+  var endBloomMat = new THREE.MeshBasicMaterial({ map: glowTex, color: 0xff2b36, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending });
+  var endBloom = new THREE.Mesh(new THREE.PlaneGeometry(44, 28), endBloomMat);
+  endBloom.position.set(0, 5.5, -152);
+  scene.add(endBloom);
+
   /* ── gallery: floating screens, click = play the film ─────── */
   var SCREENS = [
     { img: 'assets/thumbs/th-power.jpg',            vid: 'media/monarch-portfolio-v5.mp4',        title: 'MONARCH — THE MAIN FILM', meta: '37 SEC · SOUND ON' },
@@ -283,7 +304,24 @@
     pointer.y = -(ev.clientY / window.innerHeight) * 2 + 1;
     raycaster.setFromCamera(pointer, camera);
     var hits = raycaster.intersectObjects(screenMeshes, false);
-    if (!hits.length) return;
+    if (!hits.length) {
+      /* the world answers a stray click with a floor shockwave */
+      if (!reduced) {
+        pointer.x = (ev.clientX / window.innerWidth) * 2 - 1;
+        pointer.y = -(ev.clientY / window.innerHeight) * 2 + 1;
+        raycaster.setFromCamera(pointer, camera);
+        var fh = raycaster.intersectObject(floor, false);
+        if (fh.length) {
+          var m = new THREE.Mesh(ripGeo, new THREE.MeshBasicMaterial({ map: glowTex, color: 0xff2b36, transparent: true, opacity: 0.5, depthWrite: false, blending: THREE.AdditiveBlending }));
+          m.rotation.x = -Math.PI / 2;
+          m.position.set(fh[0].point.x, 0.05, fh[0].point.z);
+          scene.add(m);
+          ripples.push({ mesh: m, mat: m.material, born: performance.now() / 1000 });
+          pulse = Math.max(pulse, 0.8);
+        }
+      }
+      return;
+    }
     var d = hits[0].object.userData;
     var pl = document.getElementById('player'), plV = document.getElementById('plVideo'),
         plT = document.getElementById('plTitle');
@@ -316,6 +354,25 @@
   var embers = new THREE.Points(emberGeo, emberMat);
   embers.visible = false;
   scene.add(embers);
+
+  /* ── finale: ember storm — a second, faster layer that only
+       wakes for the last stretch of the flight ──────────────── */
+  var STORM_N = lite30 ? 100 : 240;
+  var stormPos = new Float32Array(STORM_N * 3);
+  var stormSpd = new Float32Array(STORM_N);
+  var stormPhase = new Float32Array(STORM_N);
+  for (var st = 0; st < STORM_N; st++) {
+    stormPos[st * 3] = (Math.random() - 0.5) * 14;
+    stormPos[st * 3 + 1] = Math.random() * 7;
+    stormPos[st * 3 + 2] = -100 - Math.random() * 48;
+    stormSpd[st] = 1.2 + Math.random() * 1.1;
+    stormPhase[st] = Math.random() * Math.PI * 2;
+  }
+  var stormGeo = new THREE.BufferGeometry();
+  stormGeo.setAttribute('position', new THREE.BufferAttribute(stormPos, 3));
+  var stormMat = new THREE.PointsMaterial({ color: 0xff3a20, size: 0.2, map: sprite, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending });
+  var stormEmbers = new THREE.Points(stormGeo, stormMat);
+  scene.add(stormEmbers);
 
   /* ── atmosphere: dust field — three depth layers, the camera
        carries all the parallax (zero per-frame CPU) ───────────── */
@@ -429,6 +486,12 @@
   var scrollCur = 0, tPrev = performance.now() / 1000;
   var chapterIdx = -1, cutT = -1, eco = false, slowN = 0, fastN = 0, tRawPrev = 0;
   var plEl = document.getElementById('player');
+  /* world reacts: every cursor-built element + every click sends a pulse
+     that flares the lights for a beat */
+  var pulse = 0, dustFarBase = 0.6;
+  window.addEventListener('monarch:pulse', function () { pulse = 1; });
+  var ripples = [];
+  var ripGeo = new THREE.PlaneGeometry(1, 1);
   var glitchAt = 2.4, glitchUntil = 0;
   var fogCol = new THREE.Color(6 / 255, 6 / 255, 6 / 255);
   var acCol = new THREE.Color(1, 0.17, 0.21);
@@ -448,15 +511,16 @@
     else { slowN = Math.max(0, slowN - 2); fastN = rawMs < 16 ? fastN + 1 : 0; }
     if (!eco && slowN > 60) {
       eco = true;
+      dustFarBase = 0.3;
       dustNear.pts.visible = false;
-      dustFar.mat.opacity = 0.3;
       for (var e0 = 0; e0 < shaftRigs.length; e0++) shaftRigs[e0].mesh.visible = e0 % 2 === 0;
     } else if (eco && fastN > 300) {
       eco = false;
+      dustFarBase = 0.6;
       dustNear.pts.visible = !lite30;
-      dustFar.mat.opacity = 0.6;
       for (var e1 = 0; e1 < shaftRigs.length; e1++) shaftRigs[e1].mesh.visible = true;
     }
+    pulse = Math.max(0, pulse - dt * 1.5);
 
     var maxScroll = Math.max(1, metrics.docH - metrics.vh);
     var target = Math.max(0, Math.min(1, window.scrollY / maxScroll));
@@ -467,8 +531,15 @@
     var camZ = 12 - 152 * prog;
     var camX = reduced ? 0 : Math.sin(prog * Math.PI * 4.2) * 0.72;
     var camY = 1.72 + (reduced ? 0 : Math.sin(prog * Math.PI * 3.1) * 0.14);
+    /* finale: the camera cranes up into the light for the last stretch */
+    var endE = 0;
+    if (!reduced) {
+      var endP = Math.max(0, Math.min(1, (prog - 0.8) / 0.2));
+      endE = endP * endP * (3 - 2 * endP);
+      camY += endE * 3.4;
+    }
     camera.position.set(camX, camY, camZ);
-    camera.lookAt(camX * 0.45, 2.05, camZ - 9);
+    camera.lookAt(camX * 0.45, 2.05 + endE * 2.8, camZ - 9);
     /* cinematic: a slow dutch-roll drift + FOV breathing */
     if (!reduced) {
       camera.rotateZ(Math.sin(prog * Math.PI * 2.6) * 0.03 + mxS * 0.015);
@@ -483,7 +554,7 @@
     acCol.setRGB(c.ac[0] / 255, c.ac[1] / 255, c.ac[2] / 255);
     scene.fog.color.copy(fogCol);
     renderer.setClearColor(fogCol, 1);
-    stripMat.color.copy(acCol);
+    stripMat.color.copy(acCol).multiplyScalar(1 + pulse * 0.6);
     floorMat.color.copy(acCol).lerp(new THREE.Color(1, 1, 1), 0.35);
 
     /* chapter light-cut: as each room takes over, the lamps flicker once
@@ -511,6 +582,16 @@
     var heroVis = Math.max(0, Math.min(1, 1 - (-camZ) / 17));   /* 1 at hero → 0 by z=-17 */
     heroGrid.visible = heroVis > 0.02;
     heroGrid.material.opacity = 0.5 * heroVis;
+    stageGlowMat.opacity = (0.18 + 0.1 * Math.sin(t * 0.8)) * heroVis * (1 + pulse * 0.8);
+    stageGlowMat.color.copy(acCol);
+    ring1.visible = ring2.visible = heroVis > 0.02;
+    if (ring1.visible) {
+      ring1.rotation.z += dt * 0.14;
+      ring2.rotation.z -= dt * 0.09;
+      ring1.rotation.x = Math.sin(t * 0.21) * 0.3;
+      ring2.rotation.x = Math.sin(t * 0.17 + 1.3) * 0.34;
+      ringMat.opacity = 0.3 * heroVis * (1 + pulse * 0.6);
+    }
     corridor.visible = prog > 0.055;
     portrait.visible = heroVis > 0.02;
     if (portrait.visible) {
@@ -519,23 +600,50 @@
       portrait.rotation.x = myS * 0.05;
       /* glitch bursts */
       if (portraitMat) {
-        if (t > glitchAt) { glitchUntil = t + 0.16; glitchAt = t + 3.1 + Math.random() * 3.6; }
-        portraitMat.size = (t < glitchUntil) ? 0.088 : 0.055;
-        portrait.position.x = (t < glitchUntil) ? (Math.random() - 0.5) * 0.16 : 0;
+        if (t > glitchAt) { glitchUntil = t + 0.18; glitchAt = t + 2.6 + Math.random() * 3.2; }
+        var breathe = 1 + Math.sin(t * 0.9) * 0.06;
+        var ignite = Math.max(0, 1 - ((t % 4.4) / 0.6)); ignite = ignite * ignite;
+        portraitMat.size = (0.055 * breathe + 0.05 * ignite + pulse * 0.05) * ((t < glitchUntil) ? 1.7 : 1);
+        portrait.position.x = (t < glitchUntil) ? (Math.random() - 0.5) * 0.26 : 0;
       }
     }
 
-    /* embers in the alley */
+    /* embers in the alley + the storm that takes over for the finale */
+    var stormP = Math.max(0, Math.min(1, (prog - 0.82) / 0.18));
     embers.visible = prog > 0.74;
     if (embers.visible) {
       var p = emberGeo.attributes.position;
       for (var i = 0; i < EMBER_N; i++) {
-        var y = p.getY(i) + emberSpd[i] * dt;
+        var y = p.getY(i) + emberSpd[i] * (1 + stormP * 1.8) * dt;
         var x = p.getX(i) + Math.sin(t * 0.9 + emberPhase[i]) * 0.0035;
         if (y > 6.6) { y = 0.05; x = (Math.random() - 0.5) * 13; }
         p.setY(i, y); p.setX(i, x);
       }
       p.needsUpdate = true;
+    }
+    stormEmbers.visible = stormP > 0.01;
+    stormMat.opacity = stormP * 0.9;
+    if (stormEmbers.visible) {
+      var sp2 = stormGeo.attributes.position;
+      for (var s3 = 0; s3 < STORM_N; s3++) {
+        var yy = sp2.getY(s3) + stormSpd[s3] * dt;
+        var xx = sp2.getX(s3) + Math.sin(t * 1.4 + stormPhase[s3]) * 0.009;
+        if (yy > 7) { yy = 0.05; xx = (Math.random() - 0.5) * 14; }
+        sp2.setY(s3, yy); sp2.setX(s3, xx);
+      }
+      sp2.needsUpdate = true;
+    }
+    /* the wall of light at the end + click shockwaves */
+    endBloomMat.opacity = endE * 0.55;
+    endBloomMat.color.copy(acCol);
+    for (var rri = ripples.length - 1; rri >= 0; rri--) {
+      var RR = ripples[rri];
+      var age = t - RR.born;
+      if (age > 0.9) { RR.mesh.parent.remove(RR.mesh); RR.mat.dispose(); ripples.splice(rri, 1); continue; }
+      var k = age / 0.9;
+      RR.mesh.scale.set(0.6 + k * 8, 0.6 + k * 8, 1);
+      RR.mat.opacity = 0.5 * (1 - k);
+      RR.mat.color.copy(acCol);
     }
 
     /* atmosphere: dust tints, light blades, floor pool, cursor light,
@@ -543,15 +651,17 @@
     dustFar.mat.color.copy(WHITE).lerp(acCol, 0.35);
     dustMid.mat.color.copy(WHITE).lerp(acCol, 0.6);
     dustNear.mat.color.copy(WHITE).lerp(acCol, 0.45);
+    dustFar.mat.opacity = dustFarBase * (1 + pulse * 0.4);
+    dustMid.mat.opacity = 0.85 * (1 + pulse * 0.5);
     for (var si = 0; si < shaftRigs.length; si++) {
       var SR2 = shaftRigs[si];
       var dz = camZ - SR2.z;
-      SR2.mat.opacity = (0.045 + 0.3 * Math.exp(-(dz * dz) / 110)) * cutFlicker;
+      SR2.mat.opacity = (0.045 + 0.3 * Math.exp(-(dz * dz) / 110)) * cutFlicker * (1 + pulse * 0.7);
       SR2.mat.color.copy(acCol);
     }
     pool.position.z = camZ - 15;
     poolMat.color.copy(acCol);
-    poolMat.opacity = 0.28 * cutFlicker * (1 - heroVis * 0.5);
+    poolMat.opacity = 0.28 * cutFlicker * (1 - heroVis * 0.5) * (1 + pulse * 0.8);
     for (var ri = 0; ri < screenRigs.length; ri++) {
       var SR3 = screenRigs[ri];
       var on = Math.max(0, Math.min(1, 1 - Math.abs(camZ - SR3.z) / 13));
