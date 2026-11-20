@@ -333,14 +333,14 @@
     scene.add(pts);
     return { pts: pts, mat: mat };
   }
-  var dustFar = makeDust(lite30 ? 160 : 520, 9.5, 0.15, 6.7, -4, -165, 0.05, 0.32);
-  var dustMid = makeDust(lite30 ? 110 : 380, 6.9, 0.1, 6.5, -6, -155, 0.09, 0.5);
-  var dustNear = makeDust(lite30 ? 12 : 30, 8.5, 0.35, 5.8, -2, -75, 0.85, 0.11);
+  var dustFar = makeDust(lite30 ? 200 : 680, 9.5, 0.15, 6.7, -4, -165, 0.075, 0.6);
+  var dustMid = makeDust(lite30 ? 140 : 460, 6.9, 0.1, 6.5, -6, -155, 0.14, 0.85);
+  var dustNear = makeDust(lite30 ? 14 : 38, 8.5, 0.35, 5.8, -2, -75, 1.15, 0.24);
 
   /* ── atmosphere: volumetric light blades — you fly THROUGH them ── */
   var shaftRigs = [];
-  var shaftGeo = new THREE.PlaneGeometry(1.7, 6.9);
-  for (var sz = -16; sz > -150; sz -= 15) {
+  var shaftGeo = new THREE.PlaneGeometry(2.4, 6.9);
+  for (var sz = -6; sz > -150; sz -= 15) {
     var sside = ((Math.round(-sz / 15) % 2) === 0) ? 1 : -1;
     var sMat = new THREE.MeshBasicMaterial({ color: 0xff2b36, transparent: true, opacity: 0.05, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending });
     var sm = new THREE.Mesh(shaftGeo, sMat);
@@ -351,14 +351,14 @@
   }
 
   /* ── atmosphere: light pool ahead + the cursor's finger of light ── */
-  var poolMat = new THREE.MeshBasicMaterial({ map: glowTex, color: 0xff2b36, transparent: true, opacity: 0.14, depthWrite: false, blending: THREE.AdditiveBlending });
-  var pool = new THREE.Mesh(new THREE.PlaneGeometry(11, 26), poolMat);
+    var poolMat = new THREE.MeshBasicMaterial({ map: glowTex, color: 0xff2b36, transparent: true, opacity: 0.3, depthWrite: false, blending: THREE.AdditiveBlending });
+    var pool = new THREE.Mesh(new THREE.PlaneGeometry(14, 32), poolMat);
   pool.rotation.x = -Math.PI / 2; pool.position.y = 0.02;
   scene.add(pool);
 
   var finePointer = window.matchMedia('(pointer: fine)').matches;
   var cursorMat = new THREE.MeshBasicMaterial({ map: glowTex, color: 0xffffff, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending });
-  var cursorLight = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 3.6), cursorMat);
+  var cursorLight = new THREE.Mesh(new THREE.PlaneGeometry(4.6, 4.6), cursorMat);
   cursorLight.rotation.x = -Math.PI / 2; cursorLight.position.y = 0.04;
   scene.add(cursorLight);
   var cursorTarget = new THREE.Vector3(0, 0.04, -12), cursorOn = false;
@@ -369,11 +369,11 @@
   /* fn/ff = per-chapter fog density: tight in the hero, open in the
      gallery, knee-deep by the alley */
   var STOPS = [
-    { id: 'chHero',    fog: [6, 6, 6],      ac: [255, 43, 54],  fn: 14, ff: 72 },
+    { id: 'chHero',    fog: [6, 6, 6],      ac: [255, 43, 54],  fn: 12, ff: 64 },
     { id: 'chGallery', fog: [10, 10, 15],   ac: [255, 43, 54],  fn: 16, ff: 96 },
     { id: 'chWho',     fog: [4, 8, 18],     ac: [110, 168, 255], fn: 14, ff: 84 },
-    { id: 'chAlley',   fog: [23, 4, 2],     ac: [255, 58, 26],  fn: 8,  ff: 54 },
-    { id: 'contact',   fog: [9, 2, 2],      ac: [255, 43, 54],  fn: 6,  ff: 46 }
+    { id: 'chAlley',   fog: [23, 4, 2],     ac: [255, 58, 26],  fn: 7,  ff: 48 },
+    { id: 'contact',   fog: [9, 2, 2],      ac: [255, 43, 54],  fn: 6,  ff: 44 }
   ];
   var stops = [];
   function docMetrics() {
@@ -449,12 +449,12 @@
     if (!eco && slowN > 60) {
       eco = true;
       dustNear.pts.visible = false;
-      dustFar.mat.opacity = 0.18;
+      dustFar.mat.opacity = 0.3;
       for (var e0 = 0; e0 < shaftRigs.length; e0++) shaftRigs[e0].mesh.visible = e0 % 2 === 0;
     } else if (eco && fastN > 300) {
       eco = false;
       dustNear.pts.visible = !lite30;
-      dustFar.mat.opacity = 0.32;
+      dustFar.mat.opacity = 0.6;
       for (var e1 = 0; e1 < shaftRigs.length; e1++) shaftRigs[e1].mesh.visible = true;
     }
 
@@ -471,8 +471,8 @@
     camera.lookAt(camX * 0.45, 2.05, camZ - 9);
     /* cinematic: a slow dutch-roll drift + FOV breathing */
     if (!reduced) {
-      camera.rotateZ(Math.sin(prog * Math.PI * 2.6) * 0.013 + mxS * 0.008);
-      var fovT = 56 + Math.sin(prog * Math.PI * 3.4) * 1.7;
+      camera.rotateZ(Math.sin(prog * Math.PI * 2.6) * 0.03 + mxS * 0.015);
+      var fovT = 56 + Math.sin(prog * Math.PI * 3.4) * 2.6;
       if (Math.abs(camera.fov - fovT) > 0.05) { camera.fov = fovT; camera.updateProjectionMatrix(); }
     }
     mxS += (mx - mxS) * 0.06; myS += (my - myS) * 0.06;
@@ -499,9 +499,9 @@
       var ct = t - cutT;
       if (ct > 0.9) cutT = -1;
       else {
-        var seq = [1, 0.3, 0.9, 0.18, 1.2, 0.92, 1];
+        var seq = [1, 0.22, 0.95, 0.1, 1.4, 0.88, 1];
         cutFlicker = seq[Math.min(seq.length - 1, Math.floor(ct / 0.13))];
-        if (ct < 0.5) fogFar = c.ff * 0.7;
+        if (ct < 0.5) fogFar = c.ff * 0.62;
       }
     }
     scene.fog.near = c.fn;
@@ -546,17 +546,17 @@
     for (var si = 0; si < shaftRigs.length; si++) {
       var SR2 = shaftRigs[si];
       var dz = camZ - SR2.z;
-      SR2.mat.opacity = (0.02 + 0.11 * Math.exp(-(dz * dz) / 110)) * cutFlicker;
+      SR2.mat.opacity = (0.045 + 0.3 * Math.exp(-(dz * dz) / 110)) * cutFlicker;
       SR2.mat.color.copy(acCol);
     }
     pool.position.z = camZ - 15;
     poolMat.color.copy(acCol);
-    poolMat.opacity = 0.13 * cutFlicker * (1 - heroVis * 0.5);
+    poolMat.opacity = 0.28 * cutFlicker * (1 - heroVis * 0.5);
     for (var ri = 0; ri < screenRigs.length; ri++) {
       var SR3 = screenRigs[ri];
       var on = Math.max(0, Math.min(1, 1 - Math.abs(camZ - SR3.z) / 13));
       SR3.mat.color.setScalar(0.5 + 0.5 * on);
-      SR3.leakMat.opacity = on * 0.15 * cutFlicker;
+      SR3.leakMat.opacity = on * 0.32 * cutFlicker;
       SR3.leakMat.color.copy(acCol);
     }
     if (finePointer && !eco) {
@@ -571,7 +571,7 @@
       if (cursorOn) {
         cursorLight.position.x += (cursorTarget.x - cursorLight.position.x) * 0.09;
         cursorLight.position.z += (cursorTarget.z - cursorLight.position.z) * 0.09;
-        cursorMat.opacity += (0.2 * cutFlicker - cursorMat.opacity) * 0.08;
+        cursorMat.opacity += (0.45 * cutFlicker - cursorMat.opacity) * 0.08;
         cursorMat.color.copy(acCol).lerp(WHITE, 0.5);
       }
     } else {
