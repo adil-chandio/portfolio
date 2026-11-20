@@ -27,13 +27,13 @@
   if (!canvas || !window.THREE) { failSoft(); return; }
 
   var THREE = window.THREE;
+  var lite30 = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 760;
   var renderer;
   try {
-    renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, powerPreference: 'high-performance' });
+    renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: !lite30, powerPreference: 'high-performance' });
   } catch (e) { failSoft(); return; }
 
-  var lite30 = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 760;
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, lite30 ? 1.5 : 2));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, lite30 ? 1.25 : 1.5));
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -322,7 +322,7 @@
     leak.rotation.x = -Math.PI / 2;
     leak.position.set(-side * 5.0, 0.025, z + 1.1);
     hall.add(leak);
-    screenRigs.push({ mat: mat, leakMat: leakMat, z: z });
+    screenRigs.push({ mat: mat, leakMat: leakMat, z: z, leak: leak });
   });
   scene.add(hall);
 
@@ -379,16 +379,16 @@
   key.shadow.camera.top = 15; key.shadow.camera.bottom = -15;
   key.shadow.camera.near = 2; key.shadow.camera.far = 55;
   key.shadow.bias = -0.0018;
+  /* the scene is static and only the CAMERA flies — so the shadow map
+     is rendered only when the flight moves ~0.8u, never per frame */
+  key.shadow.autoUpdate = false;
+  key.shadow.needsUpdate = true;
   scene.add(key); scene.add(key.target);
   var fillRed = new THREE.PointLight(0xff2b36, 32, 30, 1.9);
   scene.add(fillRed);
   var heroLight = new THREE.PointLight(0xff2b36, 42, 20, 1.9);
   heroLight.position.set(0, 4.4, 1.6);
   scene.add(heroLight);
-  var heroSpot = new THREE.SpotLight(0xfff3e6, 70, 24, 0.55, 0.7, 1.6);
-  heroSpot.position.set(2.6, 6.8, 5.5);
-  scene.add(heroSpot); scene.add(heroSpot.target);
-  heroSpot.target.position.set(0, 1.2, 0.6);
   var gateLight = new THREE.PointLight(0xff3a26, 130, 60, 1.8);
   gateLight.position.set(0, 5.2, -149);
   scene.add(gateLight);
@@ -488,20 +488,37 @@
   }
   var metrics = docMetrics();
 
-  function lerp(a, b, t) { return a + (b - a) * t; }
-  function lerp3(a, b, t) { return [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)]; }
-  function colorsAt(p) {
-    if (!stops.length) return { fog: [6, 6, 6], ac: [255, 43, 54], fn: 14, ff: 80 };
-    if (p <= stops[0].f) return { fog: stops[0].fog, ac: stops[0].ac, fn: stops[0].fn, ff: stops[0].ff };
-    for (var i = 0; i < stops.length - 1; i++) {
-      var A = stops[i], B = stops[i + 1];
-      if (p <= B.f) {
-        var t = (p - A.f) / Math.max(0.0001, B.f - A.f);
-        return { fog: lerp3(A.fog, B.fog, t), ac: lerp3(A.ac, B.ac, t), fn: lerp(A.fn, B.fn, t), ff: lerp(A.ff, B.ff, t) };
+  /* allocation-free: writes into one preallocated object, zero GC churn */
+  var cOut = { fog: [6, 6, 6], ac: [255, 43, 54], fn: 14, ff: 80 };
+  function colorsAt(p, out) {
+    var i, A, B, t, S;
+    if (stops.length && p > stops[0].f) {
+      S = null;
+      for (i = 0; i < stops.length - 1; i++) {
+        A = stops[i]; B = stops[i + 1];
+        if (p <= B.f) {
+          t = (p - A.f) / Math.max(0.0001, B.f - A.f);
+          out.fog[0] = A.fog[0] + (B.fog[0] - A.fog[0]) * t;
+          out.fog[1] = A.fog[1] + (B.fog[1] - A.fog[1]) * t;
+          out.fog[2] = A.fog[2] + (B.fog[2] - A.fog[2]) * t;
+          out.ac[0] = A.ac[0] + (B.ac[0] - A.ac[0]) * t;
+          out.ac[1] = A.ac[1] + (B.ac[1] - A.ac[1]) * t;
+          out.ac[2] = A.ac[2] + (B.ac[2] - A.ac[2]) * t;
+          out.fn = A.fn + (B.fn - A.fn) * t;
+          out.ff = A.ff + (B.ff - A.ff) * t;
+          return out;
+        }
       }
+      S = stops[stops.length - 1];
+    } else if (stops.length) {
+      S = stops[0];
     }
-    var last = stops[stops.length - 1];
-    return { fog: last.fog, ac: last.ac, fn: last.fn, ff: last.ff };
+    if (S) {
+      out.fog[0] = S.fog[0]; out.fog[1] = S.fog[1]; out.fog[2] = S.fog[2];
+      out.ac[0] = S.ac[0]; out.ac[1] = S.ac[1]; out.ac[2] = S.ac[2];
+      out.fn = S.fn; out.ff = S.ff;
+    }
+    return out;
   }
 
   /* ── mouse + resize ───────────────────────────────────────── */
@@ -557,10 +574,34 @@
     window.setTimeout(function () { plV.play().catch(function () {}); }, 80);
   });
 
+  /* ── the butter ladder: four quality levels auto-stepped by
+       frame time. Starts one notch down for instant smoothness,
+       climbs to full quality only when the machine is proven stable. */
+  var QL = 1, lastQL = 0, eco = false;
+  var dprC = lite30 ? [1.25, 1.0, 0.9, 0.9] : [1.5, 1.1, 0.95, 0.9];
+  var shadowZ = 1e9;
+  function applyQ() {
+    eco = QL >= 2;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, dprC[QL]));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    dustFarBase = [0.34, 0.24, 0.16, 0.14][QL];
+    var sm = QL === 0 ? (lite30 ? 512 : 1024) : (QL === 1 ? (lite30 ? 384 : 512) : 0);
+    if (sm > 0) {
+      if (key.shadow.map) { key.shadow.map.dispose(); key.shadow.map = null; }
+      key.shadow.mapSize.set(sm, sm);
+      key.castShadow = true;
+      key.shadow.needsUpdate = true;
+    } else {
+      key.castShadow = false;
+    }
+    dustNear.pts.visible = !lite30 && QL < 2;
+  }
+  applyQ();
+
   /* ── main loop ────────────────────────────────────────────── */
   var lastLiteFrame = 0;
   var scrollCur = 0, tPrev = performance.now() / 1000;
-  var chapterIdx = -1, cutT = -1, eco = false, slowN = 0, fastN = 0, tRawPrev = 0;
+  var chapterIdx = -1, cutT = -1, slowN = 0, fastN = 0, tRawPrev = 0;
   var plEl = document.getElementById('player');
   var glitchAt = 2.4, glitchUntil = 0;
   var fogCol = new THREE.Color(6 / 255, 6 / 255, 6 / 255);
@@ -574,28 +615,17 @@
 
   function tick() {
     requestAnimationFrame(tick);
-    if (lite30) { var lf = performance.now() / 1000; if (lf - lastLiteFrame < 0.032) return; lastLiteFrame = lf; }
+    if (lite30 || QL === 3) { var lf = performance.now() / 1000; if (lf - lastLiteFrame < 0.032) return; lastLiteFrame = lf; }
     if (document.hidden || (plEl && plEl.classList.contains('on'))) { tPrev = performance.now() / 1000; tRawPrev = 0; return; }
     var t = performance.now() / 1000;
     var rawMs = tRawPrev ? (t - tRawPrev) * 1000 : 16; tRawPrev = t;
     var dt = Math.min(0.05, t - tPrev); tPrev = t;
 
-    /* adaptive eco — shed light first, recover when it settles */
+    /* butter ladder — drops fast, climbs slow, never lags */
     if (rawMs > 22) { slowN = Math.min(999, slowN + 1); fastN = 0; }
     else { slowN = Math.max(0, slowN - 2); fastN = rawMs < 16 ? fastN + 1 : 0; }
-    if (!eco && slowN > 60) {
-      eco = true;
-      dustFarBase = 0.18;
-      dustNear.pts.visible = false;
-      key.castShadow = false;
-      for (var e0 = 0; e0 < shaftRigs.length; e0++) shaftRigs[e0].mesh.visible = e0 % 2 === 0;
-    } else if (eco && fastN > 300) {
-      eco = false;
-      dustFarBase = 0.34;
-      dustNear.pts.visible = !lite30;
-      key.castShadow = true;
-      for (var e1 = 0; e1 < shaftRigs.length; e1++) shaftRigs[e1].mesh.visible = true;
-    }
+    if (slowN > 32 && QL < 3) { QL++; applyQ(); slowN = 0; lastQL = t; }
+    else if (fastN > 500 && QL > (lite30 ? 1 : 0) && (t - lastQL) > 10) { QL--; applyQ(); fastN = 0; lastQL = t; }
     pulse = Math.max(0, pulse - dt * 1.5);
 
     var maxScroll = Math.max(1, metrics.docH - metrics.vh);
@@ -614,6 +644,7 @@
       camY += endE * 3.4;
     }
     camera.position.set(camX, camY, camZ);
+    if (key.castShadow && Math.abs(camZ - shadowZ) > 0.8) { shadowZ = camZ; key.shadow.needsUpdate = true; }
     camera.lookAt(camX * 0.45, 2.05 + endE * 2.8, camZ - 9);
     if (!reduced) {
       camera.rotateZ(Math.sin(prog * Math.PI * 2.6) * 0.03 + mxS * 0.015);
@@ -623,7 +654,7 @@
     mxS += (mx - mxS) * 0.06; myS += (my - myS) * 0.06;
 
     /* atmosphere from chapter keyframes */
-    var c = colorsAt(prog);
+    var c = colorsAt(prog, cOut);
     fogCol.setRGB(c.fog[0] / 255, c.fog[1] / 255, c.fog[2] / 255);
     acCol.setRGB(c.ac[0] / 255, c.ac[1] / 255, c.ac[2] / 255);
     scene.fog.color.copy(fogCol);
@@ -669,11 +700,12 @@
     ringMat.emissive.copy(acCol);
     rimMat.emissive.copy(acCol);
 
+    /* the gate only matters in the finale — skip its draws before then */
+    gate.visible = prog > 0.55;
     /* hero zone: real lights fade with distance */
     var heroVis = Math.max(0, Math.min(1, 1 - (-camZ) / 17));
     heroGroup.visible = heroVis > 0.02;
     heroLight.intensity = 42 * heroVis * fl;
-    heroSpot.intensity = 70 * heroVis * fl;
     portrait.visible = heroVis > 0.02;
     if (portrait.visible) {
       portrait.position.y = Math.sin(t * 0.6) * 0.14;
@@ -734,15 +766,16 @@
     for (var si = 0; si < shaftRigs.length; si++) {
       var SR2 = shaftRigs[si];
       var dz = camZ - SR2.z;
-      SR2.mat.opacity = (0.035 + 0.15 * Math.exp(-(dz * dz) / 110)) * cutFlicker * (1 + pulse * 0.7);
-      SR2.mat.color.copy(acCol);
+      var so = (0.035 + 0.15 * Math.exp(-(dz * dz) / 110)) * cutFlicker * (1 + pulse * 0.7);
+      if (so < 0.02 || (eco && si % 2 === 1)) { SR2.mesh.visible = false; }
+      else { SR2.mesh.visible = true; SR2.mat.opacity = so; SR2.mat.color.copy(acCol); }
     }
     for (var ri = 0; ri < screenRigs.length; ri++) {
       var SR3 = screenRigs[ri];
       var on = Math.max(0, Math.min(1, 1 - Math.abs(camZ - SR3.z) / 13));
       SR3.mat.color.setScalar(0.5 + 0.5 * on);
-      SR3.leakMat.opacity = on * 0.22 * cutFlicker;
-      SR3.leakMat.color.copy(acCol);
+      if (on < 0.03) { SR3.leak.visible = false; }
+      else { SR3.leak.visible = true; SR3.leakMat.opacity = on * 0.22 * cutFlicker; SR3.leakMat.color.copy(acCol); }
     }
 
     /* the cursor carries a real spotlight */
