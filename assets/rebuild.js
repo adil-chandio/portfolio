@@ -53,6 +53,7 @@
     if (!run) return;
     const r = run; run = null;
     cancelAnimationFrame(r.raf);
+    clearTimeout(r.watchdog);
     r.controller.abort();
     r.targets.forEach(clearTarget);
     document.body.classList.remove('monarch-build-active');
@@ -159,6 +160,10 @@
     const duration = clamp(48000 + maxScroll * 0.0011, 52000, 76000);
     run = { controller, scrollBehavior, overlay, hud, guide, actors, targets, maxScroll, duration, elapsed:0, last:0, paused:false, speed:1, phase:'tour', raf:0, scroll:0 };
     const r = run;
+    // Anti-stuck: whatever wedges the tour (crash, hang), the page must
+    // NEVER stay a blank void — force a full reveal well past the longest
+    // possible run. (A user-paused tour is intentional, so it's exempt.)
+    r.watchdog = setTimeout(() => { if (run === r && !r.paused) cleanup(true); }, 130000);
     hud.querySelector('.build-skip').addEventListener('click', () => { tone(300,.06,'square',.012); cleanup(true, r.phase === 'complete'); }, { signal });
     hud.querySelector('.build-pause').addEventListener('click', e => {
       if (r.phase === 'complete') { cleanup(true); start(true); return; }
@@ -316,7 +321,13 @@
       if (reduced.matches) { const el=$('#toast');el.textContent='Visual rebuild is disabled by your reduced motion preference.';el.classList.add('show');setTimeout(()=>el.classList.remove('show'),3200);return; }
       start(true);
     });
-    window.addEventListener('monarch:intro-done', () => { if (autoScheduled) return; autoScheduled = true; start(false); });
+    window.addEventListener('monarch:intro-done', () => {
+      if (autoScheduled) return; autoScheduled = true;
+      // The cursor tour is a showcase for mouse users. On a phone the
+      // 60-second void is just a blank page — show the content directly.
+      if (matchMedia('(pointer: coarse)').matches) return;
+      start(false);
+    });
   }
   init();
 })();
