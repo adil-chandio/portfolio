@@ -63,6 +63,9 @@ function boot() {
   } else {
     // No entry page: open the link → the intro film autoplays, then the site opens.
     requestAnimationFrame(() => playSplash(true));
+    // On a phone over a slow network the 3.4MB film can take minutes —
+    // if it hasn't buffered within 8s, enter the site (REPLAY plays it later).
+    if (!fine) setTimeout(() => { if (film.readyState < 3) endIntro(); }, 8000);
   }
 }
 $('#skipBtn').addEventListener('click', endIntro);

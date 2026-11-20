@@ -21,6 +21,14 @@
     document.documentElement.classList.add('no-gl');
     finishLoader();
   }
+  /* THE SITE MUST NEVER BE TRAPPED BEHIND THIS LOADER. If anything below
+     is slow (network, shader compile) or dead (crashed context), the
+     site opens anyway — the 3D world is a bonus, not a gate. */
+  window.setTimeout(finishLoader, 4000);
+  window.addEventListener('error', function () {
+    document.documentElement.classList.add('no-gl');
+    finishLoader();
+  }, { once: true });
   setProg(0.15);
 
   var canvas = document.getElementById('gl');
@@ -584,7 +592,7 @@
        drops 40-75%. L0 full · L1 0.8× · L2 0.65×+30fps+no shadow
        · L3 0.5×+30fps. Starts at FULL (L0) so the first frame is
        crisp; if the machine can't hold it, drops within ~0.4s. */
-  var QL = 0, lastQL = 0, eco = false;
+  var QL = lite30 ? 2 : 0, lastQL = 0, eco = false;
   var SC = [1.0, 0.8, 0.65, 0.5];
   var DPRM = lite30 ? [1.25, 1.0, 0.9, 0.9] : [1.5, 1.25, 1.0, 0.9];
   var shadowZ = 1e9;
@@ -819,7 +827,9 @@
 
     renderer.render(scene, camera);
   }
-  tick();
+  requestAnimationFrame(tick); /* first frame on the NEXT frame — the
+                                   expensive first shader-compile pass can
+                                   never block the page from opening */
 
   /* light chapter covers → same #player lightbox */
   function $$lwClick() {
