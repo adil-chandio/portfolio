@@ -1,8 +1,8 @@
 /* ============================================================
-   THE SCROLL v4 — pre-rendered CG environments + live GL overlay
-   Videos (Google Flow, Adil's) = the environments, on the
-   compositor (zero per-frame GPU cost). three.js adds ONLY:
-   the point-cloud portrait (hero) + chapter dust. ~2 draw calls.
+   MONARCH — THE SCROLL · clean-room engine
+   One rAF loop drives: scroll progress, pin dive, copy fades,
+   dip transitions, counter/dots, video routing, and the GL
+   overlay (point-cloud portrait + chapter dust). ~2 draw calls.
    ============================================================ */
 (function () {
   'use strict';
@@ -15,136 +15,146 @@
   function smooth(a, b, v) { var t = clamp01((v - a) / (b - a)); return t * t * (3 - 2 * t); }
   function easeIO(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
 
+  /* ── scene registry ─────────────────────────────────────── */
+  var SCENES = [
+    { id: 's-hero',    light: 0, dip: '#050506', dust: 0xcfd4e0, dop: 0.5 },
+    { id: 's-work',    light: 1, dip: '#f2f0ea', dust: 0x000000, dop: 0 },
+    { id: 's-room',    light: 0, dip: '#050506', dust: 0xdde6ff, dop: 0.32 },
+    { id: 's-render',  light: 0, dip: '#050506', dust: 0x9fe8b8, dop: 0.5 },
+    { id: 's-forge',   light: 0, dip: '#050506', dust: 0xbfd9ff, dop: 0.42 },
+    { id: 's-catalog', light: 1, dip: '#f2f0ea', dust: 0x000000, dop: 0 },
+    { id: 's-about',   light: 0, dip: '#050506', dust: 0xffc36b, dop: 0.5 },
+    { id: 's-finale',  light: 0, dip: '#170404', dust: 0xffb08a, dop: 0.55 }
+  ];
+  var N = SCENES.length;
+
+  var scenes = SCENES.map(function (cfg) {
+    var el = document.getElementById(cfg.id);
+    return {
+      cfg: cfg, el: el,
+      pin: el ? el.querySelector('.pin') : null,
+      bg: el ? el.querySelector('.bg') : null,
+      vid: el ? el.querySelector('.vid') : null,
+      fades: el ? Array.prototype.slice.call(el.querySelectorAll('.copy,.spec,.hint,.meta,.term,.mag-wrap,.about,.finale')) : [],
+      top: 0, h: 0, p: 0
+    };
+  });
+  var vh = window.innerHeight;
+  function measure() {
+    vh = window.innerHeight;
+    scenes.forEach(function (s) {
+      if (!s.el) return;
+      s.top = s.el.getBoundingClientRect().top + window.scrollY;
+      s.h = s.el.offsetHeight;
+    });
+  }
+  measure();
+
   /* ── loader ─────────────────────────────────────────────── */
-  var loader = document.getElementById('jLoader');
-  var fill = document.getElementById('jldFill');
-  var pct = document.getElementById('jldPct');
-  var prog = 0.1, loadDone = false;
+  var loader = document.getElementById('s-loader');
+  var ldFill = document.getElementById('ld-fill');
+  var ldPct = document.getElementById('ld-pct');
+  var prog = 0.12, loadDone = false;
   function setFill(p) {
     prog = Math.max(prog, p);
     var w = Math.min(1, prog);
-    if (fill) fill.style.width = (w * 100).toFixed(0) + '%';
-    if (pct) pct.textContent = (w * 100).toFixed(0) + '%';
+    if (ldFill) ldFill.style.width = (w * 100).toFixed(0) + '%';
+    if (ldPct) ldPct.textContent = (w * 100).toFixed(0).replace(/^0/, '0');
   }
-  function done() {
+  function loadDone2() {
     if (loadDone) return; loadDone = true;
     setFill(1);
     if (loader) loader.classList.add('done');
     window.setTimeout(function () { if (loader && loader.parentNode) loader.parentNode.removeChild(loader); }, 1000);
   }
   setFill(0.4);
-  window.addEventListener('load', function () { window.setTimeout(done, 250); });
-  window.setTimeout(done, 3000);
+  window.addEventListener('load', function () { window.setTimeout(loadDone2, 250); });
+  window.setTimeout(loadDone2, 3000);
 
-  /* ── chapters ──────────────────────────────────────────── */
-  var vh = window.innerHeight;
-  var IDS = ['ch0', 'ch1', 'chroom', 'chrender', 'chforge', 'chcatalog', 'chabout', 'chfinale'];
-  var COUNTER = ['00 / 07', '01 / 07', '02 / 07', '03 / 07', '04 / 07', '05 / 07', '06 / 07', '07 / 07'];
-  var FLASH = ['', '#ffffff', '#e8e4da', '#cfe6ff', '#d5e4ff', '#ffffff', '#ffd9a8', '#ff5a3d'];
-  var DUST_COL = [0xcfd4e0, 0x000000, 0xdde6ff, 0x9fe8b8, 0xbfd9ff, 0x000000, 0xffc36b, 0xffb08a];
-  var DUST_OP = [0.55, 0, 0.35, 0.5, 0.45, 0, 0.5, 0.6];
-  var IS_LIGHT = [0, 1, 0, 0, 0, 1, 0, 0];   /* white chapters: canvas hidden */
-
-  var chapters = IDS.map(function (id) {
-    var el = document.getElementById(id);
-    return {
-      el: el,
-      pin: el ? el.querySelector('.j-pin') : null,
-      bg: el ? el.querySelector('.j-bg') : null,
-      fades: el ? Array.prototype.slice.call(el.querySelectorAll('.j-fade')) : [],
-      top: 0, h: 0, p: 0
-    };
-  });
-  function measure() {
-    vh = window.innerHeight;
-    chapters.forEach(function (c) {
-      if (!c.el) return;
-      c.top = c.el.getBoundingClientRect().top + window.scrollY;
-      c.h = c.el.offsetHeight;
+  /* ── HUD: dots + counter ────────────────────────────────── */
+  var dotsBox = document.getElementById('s-dots');
+  var dots = scenes.map(function (s, i) {
+    var b = document.createElement('button');
+    b.setAttribute('aria-label', 'Scene 0' + (i + 1));
+    b.addEventListener('click', function () {
+      if (s.el) s.el.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
     });
-  }
-  measure();
-
-  var CHIPS = Array.prototype.slice.call(document.querySelectorAll('.j-chip'));
-  var countEl = document.getElementById('jCount');
-  var flashEl = document.getElementById('jFlash');
-  var progEl = document.getElementById('jProg');
-
+    dotsBox.appendChild(b);
+    return b;
+  });
+  var posEl = document.getElementById('s-pos');
+  var barEl = document.getElementById('s-bar');
+  var dipEl = document.getElementById('s-dip');
   var mx = 0, my = 0;
   window.addEventListener('mousemove', function (e) {
     mx = (e.clientX / window.innerWidth) * 2 - 1;
     my = (e.clientY / window.innerHeight) * 2 - 1;
   }, { passive: true });
 
-  var view = chapters.map(function () { return { s: 1.2, x: 0, y: 0 }; });
-  var active = 0;
-  var covers = Array.prototype.slice.call(document.querySelectorAll('.j-cover'));
-
-  /* ── video environments ─────────────────────────────────── */
-  var vids = chapters.map(function (c) { return c.el ? c.el.querySelector('.j-vid') : null; });
+  /* ── video routing ──────────────────────────────────────── */
   var lightboxOpen = false;
-  function setVids(on) {
-    for (var i = 0; i < vids.length; i++) {
-      var v = vids[i]; if (!v) continue;
-      var wantPlay = on && !reduced && i === active && !document.hidden && !lightboxOpen;
-      if (wantPlay) {
-        if (v.paused) { v.play().catch(function () {}); }
-      } else if (!v.paused) { v.pause(); }
+  function routeVids() {
+    for (var i = 0; i < N; i++) {
+      var v = scenes[i].vid; if (!v) continue;
+      var want = !reduced && i === active && !document.hidden && !lightboxOpen;
+      if (want) { if (v.paused) v.play().catch(function () {}); }
+      else if (!v.paused) { v.pause(); }
     }
   }
-  /* videos keep the native loop attribute — the browser loops them,
-     so a clip can NEVER freeze mid-journey */
-  vids.forEach(function (v) {
-    if (!v) return;
-    if (reduced) { v.removeAttribute('autoplay'); v.pause(); }
+  scenes.forEach(function (s) {
+    if (s.vid && reduced) { s.vid.removeAttribute('autoplay'); s.vid.pause(); }
   });
-  document.addEventListener('visibilitychange', setVids);
-
-  /* watchdog: if the active clip ever pauses for any reason
-     (browser quirk, decode hiccup), restart it within 2.5s */
+  /* watchdog — a clip that ever pauses restarts within 2.5s */
   window.setInterval(function () {
     if (document.hidden || lightboxOpen || reduced) return;
-    var v = vids[active];
+    var v = scenes[active].vid;
     if (v && v.paused) v.play().catch(function () {});
   }, 2500);
+  document.addEventListener('visibilitychange', routeVids);
+
+  /* ── main loop ──────────────────────────────────────────── */
+  var active = 0;
+  var par = scenes.map(function () { return { s: 1.22, x: 0, y: 0 }; });
 
   function frame() {
     requestAnimationFrame(frame);
     var y = window.scrollY || window.pageYOffset || 0;
     var docH = Math.max(document.body.scrollHeight, docEl.scrollHeight) - vh;
-    if (progEl) progEl.style.transform = 'scaleX(' + (docH > 0 ? (y / docH).toFixed(4) : 0) + ')';
+    if (barEl) barEl.style.transform = 'scaleX(' + (docH > 0 ? (y / docH).toFixed(4) : 0) + ')';
 
     var bestVis = -1, bestIdx = 0;
-    for (var i = 0; i < chapters.length; i++) {
-      var c = chapters[i]; if (!c.el) continue;
-      c.p = clamp01((y - c.top) / Math.max(1, c.h - vh));
-      if (c.pin) {
-        var dive = 1.05 - 0.05 * easeIO(smooth(0, 0.3, c.p));
-        c.pin.style.transform = 'scale(' + dive.toFixed(4) + ')';
-      }
-      var centerOffset = (c.top + c.h / 2) - (y + vh / 2);
+    for (var i = 0; i < N; i++) {
+      var s = scenes[i]; if (!s.el) continue;
+      s.p = clamp01((y - s.top) / Math.max(1, s.h - vh));
+      var centerOffset = (s.top + s.h / 2) - (y + vh / 2);
       var vis = clamp01(1 - Math.abs(centerOffset) / (vh * 0.78));
-      var v = view[i];
-      if (c.bg) {
-        var targetS = 1.22 - smooth(0.05, 0.85, vis) * 0.16;
-        var targetX = (centerOffset / vh) * 3.0 - mx * 1.0;
-        var targetY = -(my * 0.9);
-        v.s += (targetS - v.s) * (reduced ? 1 : 0.085);
-        v.x += (targetX - v.x) * (reduced ? 1 : 0.075);
-        v.y += (targetY - v.y) * (reduced ? 1 : 0.075);
-        c.bg.style.transform = 'scale(' + v.s.toFixed(4) + ') translate3d(' + v.x.toFixed(2) + '%,' + v.y.toFixed(2) + '%,0)';
+
+      /* camera-push: each room dive-ins 1.05 → 1.0 */
+      if (s.pin) s.pin.style.transform = 'scale(' + (1.05 - 0.05 * easeIO(smooth(0, 0.28, s.p))).toFixed(4) + ')';
+
+      /* plate parallax (fallback plates) */
+      if (s.bg) {
+        var pv = par[i];
+        pv.s += ((1.22 - smooth(0.05, 0.85, vis) * 0.16) - pv.s) * (reduced ? 1 : 0.085);
+        pv.x += (((centerOffset / vh) * 3.0 - mx * 1.0) - pv.x) * (reduced ? 1 : 0.075);
+        pv.y += ((-my * 0.9) - pv.y) * (reduced ? 1 : 0.075);
+        s.bg.style.transform = 'scale(' + pv.s.toFixed(4) + ') translate3d(' + pv.x.toFixed(2) + '%,' + pv.y.toFixed(2) + '%,0)';
       }
-      var fade = smooth(0.1, 0.45, vis) * (1 - smooth(0.86, 1.0, vis) * 0.4);
-      for (var j = 0; j < c.fades.length; j++) {
-        c.fades[j].style.opacity = fade.toFixed(3);
-        c.fades[j].style.transform = 'translateY(' + ((1 - fade) * 26).toFixed(1) + 'px)';
+
+      /* copy: rise + fade in as the room focuses */
+      var fade = smooth(0.08, 0.34, vis) * (1 - smooth(0.88, 1.0, vis) * 0.4);
+      for (var j = 0; j < s.fades.length; j++) {
+        s.fades[j].style.opacity = fade.toFixed(3);
+        s.fades[j].style.transform = 'translateY(' + ((1 - fade) * 26).toFixed(1) + 'px)';
       }
       if (i === 0) {
-        var hf = 1 - smooth(0.08, 0.38, c.p);
-        c.fades.forEach(function (f) { f.style.opacity = hf.toFixed(3); f.style.transform = ''; });
+        var hf = 1 - smooth(0.06, 0.34, s.p);
+        s.fades.forEach(function (f) { f.style.opacity = hf.toFixed(3); f.style.transform = ''; });
       }
       if (i === 1) {
+        /* white chapter: fan the covers with focus */
         var fan = 0.3 + smooth(0.15, 0.7, vis);
+        var covers = s.el.querySelectorAll('.cover');
         for (var k = 0; k < covers.length; k++) {
           var off = k - (covers.length - 1) / 2;
           covers[k].style.opacity = smooth(0.1, 0.5, vis).toFixed(3);
@@ -156,39 +166,34 @@
 
     if (bestIdx !== active) {
       active = bestIdx;
-      if (countEl) countEl.textContent = COUNTER[active];
-      CHIPS.forEach(function (b) { b.classList.toggle('on', chapters[active] && b.dataset.go === chapters[active].el.id); });
-      document.body.classList.toggle('light-ch', !!IS_LIGHT[active]);
-      setVids(true);
+      if (posEl) posEl.textContent = ('0' + (active + 1)).slice(-2) + ' / 0' + N;
+      for (var d = 0; d < dots.length; d++) dots[d].classList.toggle('on', d === active);
+      document.body.classList.toggle('on-light', !!scenes[active].cfg.light);
+      routeVids();
     }
 
-    if (flashEl) {
-      var o = 0, tint = '';
-      for (var b = 1; b < chapters.length; b++) {
-        var boundary = chapters[b].top;
-        var d = Math.abs(y - boundary);
-        if (d < 130) {
-          var k2 = Math.pow(1 - d / 130, 2.1) * 0.9;
-          if (k2 > o) { o = k2; tint = FLASH[b]; }
+    /* dip transition at each boundary — dark between dark rooms,
+       paper-white into the white chapters (one language) */
+    if (dipEl) {
+      var o = 0, color = '#050506';
+      for (var b = 1; b < N; b++) {
+        var boundary = scenes[b].top;
+        var dist = Math.abs(y - boundary);
+        if (dist < 140) {
+          var k = Math.pow(1 - dist / 140, 2.1) * (scenes[b].cfg.light ? 0.94 : 0.88);
+          if (k > o) { o = k; color = scenes[b].cfg.dip; }
         }
       }
-      flashEl.style.opacity = o.toFixed(3);
-      if (tint && flashEl.style.background !== tint) flashEl.style.background = tint;
+      dipEl.style.opacity = o.toFixed(3);
+      if (color && dipEl.style.backgroundColor !== color) dipEl.style.backgroundColor = color;
     }
   }
   frame();
-  setVids(true);
+  routeVids();
+  window.addEventListener('resize', measure);
 
-  CHIPS.forEach(function (b) {
-    b.addEventListener('click', function () {
-      var t = document.getElementById(b.dataset.go);
-      if (t) t.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
-    });
-  });
-  window.addEventListener('resize', function () { measure(); });
-
-  /* ══════════ GL: point-cloud hero + dust (2 draw calls) ══ */
-  var canvas = document.getElementById('jgl');
+  /* ══ GL: point-cloud hero + chapter dust (2 draw calls) ══ */
+  var canvas = document.getElementById('s-gl');
   var potato = false;
   try {
     var probe = document.createElement('canvas');
@@ -197,7 +202,7 @@
     var gpu = dbg ? String(pctx.getParameter(dbg.UNMASKED_RENDERER_WEBGL) || '') : '';
     var mem = navigator.deviceMemory || 8, cores = navigator.hardwareConcurrency || 8;
     potato = /(SwiftShader|llvmpipe|softpipe|VideoCore|Mali-[0-9T]|Mali-G[0-3][0-9]|Adreno\s?(\(TM\))?\s?[234]|PowerVR)/i.test(gpu) || (mem <= 2 && cores <= 4);
-  } catch (e) { /* detection failed → try GL */ }
+  } catch (e) { /* try GL anyway */ }
 
   if (!potato && canvas && window.THREE) {
     var THREE = window.THREE;
@@ -228,10 +233,10 @@
       }
       var sprite = spriteTex();
 
-      /* ── the portrait, rebuilt as glowing points (#17 technique) ── */
+      /* point-cloud portrait — Adil's masked portrait → glowing points */
       var portrait = new THREE.Group();
       var pMat = null, basePos = null, scatterVec = null;
-      (function buildPortrait() {
+      (function () {
         var img = new Image();
         img.onload = function () {
           var w = coarse ? 150 : 190, h = Math.round(w * (img.height / img.width));
@@ -281,10 +286,10 @@
       })();
       scene.add(portrait);
 
-      /* ── chapter dust (rides the fixed camera) ── */
-      var N = coarse ? 80 : 150;
-      var dpos = new Float32Array(N * 3), spd = new Float32Array(N), ph = new Float32Array(N);
-      for (var i = 0; i < N; i++) {
+      /* chapter dust — rides the camera, color lerps per scene */
+      var M = coarse ? 80 : 150;
+      var dpos = new Float32Array(M * 3), spd = new Float32Array(M), ph = new Float32Array(M);
+      for (var i = 0; i < M; i++) {
         dpos[i * 3] = (Math.random() - 0.5) * 20;
         dpos[i * 3 + 1] = (Math.random() - 0.5) * 12;
         dpos[i * 3 + 2] = -10 + Math.random() * 16;
@@ -297,8 +302,7 @@
       var dust = new THREE.Points(dGeo, dMat);
       camera.add(dust);
 
-      var curOp = 0.5;
-      var lastLite = 0, glPaused = false;
+      var curOp = 0.5, lastLite = 0, glPaused = false;
       document.addEventListener('visibilitychange', function () { glPaused = document.hidden; });
 
       var tPrev = performance.now() / 1000;
@@ -310,11 +314,9 @@
         lastLite = t;
         var dt = Math.min(0.05, t - tPrev); tPrev = t;
 
-        /* white chapter: canvas hidden (DOM white takes over) */
-        canvas.style.visibility = IS_LIGHT[active] ? 'hidden' : 'visible';
+        canvas.style.visibility = scenes[active].cfg.light ? 'hidden' : 'visible';
 
-        /* hero: portrait drifts, scatters, dissolves as its chapter progresses */
-        var p0 = chapters[0].p || 0;
+        var p0 = scenes[0].p || 0;
         var heroVis = clamp01(1 - p0 * 1.7);
         portrait.visible = heroVis > 0.02 && active === 0;
         if (portrait.visible) {
@@ -333,13 +335,12 @@
           }
         }
 
-        /* dust: chapter color */
-        dMat.color.lerp(new THREE.Color(DUST_COL[active]), 0.06);
-        curOp += (DUST_OP[active] - curOp) * 0.06;
+        dMat.color.lerp(new THREE.Color(scenes[active].cfg.dust), 0.06);
+        curOp += (scenes[active].cfg.dop - curOp) * 0.06;
         dMat.opacity = curOp;
         if (!reduced && curOp > 0.03) {
           var dp = dGeo.attributes.position;
-          for (var i4 = 0; i4 < N; i4++) {
+          for (var i4 = 0; i4 < M; i4++) {
             var zz = dp.getZ(i4) - 2.0 * dt;
             if (zz < -10) zz = 6;
             dp.setZ(i4, zz);
@@ -348,7 +349,7 @@
           dp.needsUpdate = true;
         }
         camera.position.x += (mx * 0.5 - camera.position.x) * 0.05;
-        camera.position.y += (1.2 + my * -0.3 - camera.position.y) * 0.05;
+        camera.position.y += (1.2 - my * 0.3 - camera.position.y) * 0.05;
         camera.lookAt(0, 0.9, 0);
         renderer.render(scene, camera);
       }
@@ -365,32 +366,33 @@
     docEl.classList.add('no-gl');
   }
 
-  /* ══════════ lightbox ════════════════════════════════════ */
-  var player = document.getElementById('jPlayer');
-  var jpVideo = document.getElementById('jpVideo');
-  var jpTitle = document.getElementById('jpTitle');
+  /* ══ lightbox ══ */
+  var player = document.getElementById('s-player');
+  var plVideo = document.getElementById('pl-video');
+  var plTitle = document.getElementById('pl-title');
   function openFilm(src, title) {
-    if (!player || !jpVideo) return;
+    if (!player || !plVideo) return;
     lightboxOpen = true;
-    setVids(true);   /* pauses all environments while the film plays */
-    jpVideo.src = src;
-    if (jpTitle) jpTitle.textContent = (title || 'FILM').toUpperCase();
+    routeVids();
+    plVideo.src = src;
+    if (plTitle) plTitle.textContent = (title || 'FILM').toUpperCase();
     player.classList.add('on'); player.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
-    window.setTimeout(function () { jpVideo.play().catch(function () {}); }, 90);
+    window.setTimeout(function () { plVideo.play().catch(function () {}); }, 90);
   }
   function closeFilm() {
     if (!player) return;
     lightboxOpen = false;
-    jpVideo.pause(); player.classList.remove('on'); player.setAttribute('aria-hidden', 'true');
+    plVideo.pause();
+    player.classList.remove('on'); player.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
-    setVids(true);
+    routeVids();
   }
   Array.prototype.forEach.call(document.querySelectorAll('[data-src]'), function (btn) {
     btn.addEventListener('click', function () { openFilm(btn.dataset.src, btn.dataset.title); });
   });
-  var jpClose = document.getElementById('jpClose');
-  if (jpClose) jpClose.addEventListener('click', closeFilm);
+  var plClose = document.getElementById('pl-close');
+  if (plClose) plClose.addEventListener('click', closeFilm);
   if (player) player.addEventListener('click', function (e) { if (e.target === player) closeFilm(); });
   window.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeFilm(); });
 })();
