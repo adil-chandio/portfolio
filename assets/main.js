@@ -12,7 +12,7 @@ const $ = (s) => document.querySelector(s);
 const $$ = (s) => Array.from(document.querySelectorAll(s));
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const fine = matchMedia('(pointer: fine)').matches;
-const gate = $('#gate'), splash = $('#splash'), film = $('#film'), pct = $('#filmPct');
+const splash = $('#splash'), film = $('#film'), pct = $('#filmPct');
 const nav = $('#nav'), prog = $('#prog'), cursor = $('#cursor'), ring = $('#cursorRing');
 const toastEl = $('#toast');
 let toastT;
@@ -39,35 +39,36 @@ function endIntro() {
     window.dispatchEvent(new Event('monarch:intro-done'));
   }, reduced ? 0 : 480);
 }
-function playSplash() {
-  gate.classList.add('hidden');
+function playSplash(muted = false) {
   splash.classList.remove('hidden', 'done');
   lockScroll();
   film.currentTime = 0;
+  film.muted = muted;
   const p = film.play();
   const open = () => splash.classList.add('open');
   if (p && p.then) p.then(open).catch(() => { open(); toast('Tap SKIP to enter the site'); });
   else open();
+  // Browsers block autoplay WITH sound, so the boot path starts the film muted.
+  // The visitor's first gesture flips the sound on; the film keeps playing.
+  if (muted) {
+    const un = () => { if (!film.paused && !film.ended) film.muted = false; };
+    ['pointerdown', 'keydown', 'touchstart'].forEach(ev => window.addEventListener(ev, un, { once: true, passive: true }));
+  }
 }
 function boot() {
-  if (sessionStorage.getItem(KEY)) {
-    gate.classList.add('hidden');
+  if (sessionStorage.getItem(KEY) || reduced) {
     splash.classList.add('hidden', 'done');
     unlockScroll();
     window.dispatchEvent(new Event('monarch:intro-done'));
   } else {
-    requestAnimationFrame(() => {
-      gate.querySelector('.gate-name').classList.add('in');
-      const k = gate.querySelector('[data-scramble]');
-      if (k && !reduced) setTimeout(() => scramble(k), 350);
-    });
+    // No entry page: open the link → the intro film autoplays, then the site opens.
+    requestAnimationFrame(() => playSplash(true));
   }
 }
-$('#enterBtn').addEventListener('click', playSplash);
 $('#skipBtn').addEventListener('click', endIntro);
 $('#replayBtn').addEventListener('click', () => {
   sessionStorage.removeItem(KEY);
-  playSplash();
+  playSplash(false);
   window.scrollTo({ top: 0, behavior: 'auto' });
 });
 film.addEventListener('ended', endIntro);
@@ -458,7 +459,6 @@ if (!('IntersectionObserver' in window)) {
 
 /* ── v16 anti-stuck watchdog: scroll kabhi lock nahi rahega ── */
 const overlayUp = () =>
-  (!gate.classList.contains('hidden')) ||
   (!splash.classList.contains('hidden') && !splash.classList.contains('done')) ||
   pl.classList.contains('on') || rcM.classList.contains('on') || lt.classList.contains('on');
 let lockSince = 0;
