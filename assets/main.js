@@ -28,7 +28,9 @@ function toast(msg) {
 const unlockScroll = () => document.body.classList.remove('locked');
 const lockScroll = () => document.body.classList.add('locked');
 
+let introEnded = false;
 function endIntro() {
+  if (introEnded) return; introEnded = true;
   film.pause();
   splash.classList.add('closing');
   setTimeout(() => {
