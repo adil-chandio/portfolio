@@ -30,7 +30,7 @@
   var lite30 = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 760;
   var renderer;
   try {
-    renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: false, powerPreference: 'high-performance' });
+    renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: !lite30, powerPreference: 'high-performance' });
   } catch (e) { failSoft(); return; }
 
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, lite30 ? 1.25 : 1.5));
@@ -386,6 +386,9 @@
   scene.add(key); scene.add(key.target);
   var fillRed = new THREE.PointLight(0xff2b36, 32, 30, 1.9);
   scene.add(fillRed);
+  var heroLight = new THREE.PointLight(0xff2b36, 42, 20, 1.9);
+  heroLight.position.set(0, 4.4, 1.6);
+  scene.add(heroLight);
   var gateLight = new THREE.PointLight(0xff3a26, 130, 60, 1.8);
   gateLight.position.set(0, 5.2, -149);
   scene.add(gateLight);
@@ -579,9 +582,9 @@
        screen resolution and the browser bilinear-upscales — in a
        foggy, soft-lit scene the upscale is invisible, but pixel work
        drops 40-75%. L0 full · L1 0.8× · L2 0.65×+30fps+no shadow
-       · L3 0.5×+30fps. Starts at L1 for instant smoothness and only
-       climbs to full when the machine proves it can hold 60fps. */
-  var QL = 1, lastQL = 0, eco = false;
+       · L3 0.5×+30fps. Starts at FULL (L0) so the first frame is
+       crisp; if the machine can't hold it, drops within ~0.4s. */
+  var QL = 0, lastQL = 0, eco = false;
   var SC = [1.0, 0.8, 0.65, 0.5];
   var DPRM = lite30 ? [1.25, 1.0, 0.9, 0.9] : [1.5, 1.25, 1.0, 0.9];
   var shadowZ = 1e9;
@@ -628,7 +631,7 @@
        nothing moves (no scroll, no mouse, no pulse) the hall eases to
        15fps; the first touch wakes it to full rate instantly */
     var nowS = performance.now() / 1000;
-    var gate = (lite30 || QL >= 2) ? 0.032 : (nowS - lastAct > 1.4 ? 0.033 : 0);
+    var gate = (lite30 || QL >= 2) ? 0.032 : (nowS - lastAct > 1.8 ? 0.033 : 0);
     if (gate && nowS - lastLiteFrame < gate) return;
     lastLiteFrame = nowS;
     if (document.hidden || (plEl && plEl.classList.contains('on'))) { tPrev = performance.now() / 1000; tRawPrev = 0; return; }
@@ -639,7 +642,7 @@
     /* butter ladder — drops fast, climbs slow, never lags */
     if (rawMs > 22) { slowN = Math.min(999, slowN + 1); fastN = 0; }
     else { slowN = Math.max(0, slowN - 2); fastN = rawMs < 16 ? fastN + 1 : 0; }
-    if (slowN > 32 && QL < 3) { QL++; applyQ(); slowN = 0; lastQL = t; }
+    if (slowN > 20 && QL < 3) { QL++; applyQ(); slowN = 0; lastQL = t; }
     else if (fastN > 500 && QL > (lite30 ? 1 : 0) && (t - lastQL) > 10) { QL--; applyQ(); fastN = 0; lastQL = t; }
     pulse = Math.max(0, pulse - dt * 1.5);
 
@@ -720,6 +723,7 @@
     /* hero zone: real lights fade with distance */
     var heroVis = Math.max(0, Math.min(1, 1 - (-camZ) / 17));
     heroGroup.visible = heroVis > 0.02;
+    heroLight.intensity = 42 * heroVis * fl;
 
     portrait.visible = heroVis > 0.02;
     if (portrait.visible) {
