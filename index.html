@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>MONARCH — The Scroll | Adil Chandio</title>
-<meta name="description" content="Adil Chandio — edit × CG × web. A scroll-driven cinematic world: selected work, the showcase room, a render tunnel, a terminal forge, the catalogue, the messy middle, and the red alley.">
+<meta name="description" content="Adil Chandio — edit × CG × web. A scroll-driven cinematic world: selected work, the showcase room, the catalogue, a render tunnel, a terminal forge, the messy middle, and the red alley.">
 <link rel="canonical" href="https://adil-chandio.github.io/portfolio/">
 <meta property="og:title" content="MONARCH — The Scroll | Adil Chandio">
 <meta property="og:description" content="Edit × CG × Web — a scroll-driven cinematic portfolio.">
@@ -17,7 +17,7 @@
 <link rel="preload" href="assets/fonts/Manrope-800.ttf" as="font" type="font/ttf" crossorigin>
 <link rel="preload" href="assets/fonts/IBMPlexMono-400.ttf" as="font" type="font/ttf" crossorigin>
 <link rel="preload" as="image" href="assets/poster-cg-void.jpg?v=1">
-<link rel="stylesheet" href="assets/scroll.css?v=1">
+<link rel="stylesheet" href="assets/scroll.css?v=2">
 </head>
 <body>
 
@@ -27,9 +27,9 @@
 
 <!-- loader -->
 <div id="s-loader" aria-hidden="true">
-  <span class="ld-word">MONARCH<span>®</span></span>
+  <span class="ld-word">LOADING</span>
   <span class="ld-line"><i id="ld-fill"></i></span>
-  <span class="ld-sub">LOADING — <b id="ld-pct">00</b>%</span>
+  <span class="ld-sub mono"><b id="ld-pct">00</b>%</span>
 </div>
 
 <!-- HUD -->
@@ -51,6 +51,7 @@
     <div class="pin">
       <div class="bg bg-fallback" style="background-image:url('assets/plate-hero.jpg?v=1')" role="img" aria-label="A figure being scanned by a grid of light"></div>
       <video class="vid" src="media/cg-void.mp4?v=1" autoplay muted loop playsinline preload="metadata" poster="assets/poster-cg-void.jpg?v=1" aria-hidden="true"></video>
+      <div class="grid" aria-hidden="true"></div>
       <p class="corner tl mono">ADIL CHANDIO — EDIT × CG × WEB</p>
       <p class="corner tr mono">PORTFOLIO — 2026</p>
       <p class="cue mono">SCROLL TO ENTER ↓</p>
@@ -121,14 +122,37 @@
     </div>
   </section>
 
-  <!-- 04 · RENDER LAB -->
-  <section class="scene" id="s-render" aria-label="3D rendering — a flight down a machine tunnel">
+  <!-- 04 · CATALOGUE -->
+  <section class="scene scene-light" id="s-catalog">
     <div class="pin">
-      <div class="bg bg-fallback" style="background-image:url('assets/plate-machines.jpg?v=1')" role="img" aria-label="A dark industrial hall with two symmetrical rows of white robotic arms"></div>
-      <video class="vid" src="media/cg-tunnel.mp4?v=1" autoplay muted loop playsinline preload="metadata" poster="assets/poster-cg-tunnel.jpg?v=1" aria-hidden="true"></video>
-      <div class="tint tint-cold" aria-hidden="true"></div>
       <div class="copy">
-        <p class="kick kick-green">03 — 3D RENDERING</p>
+        <p class="kick kick-ink">04 — THE SITE</p>
+        <h1 class="title title-ink">CATALOGUE</h1>
+      </div>
+      <div class="mag-wrap">
+        <a class="mag" href="home.html" aria-label="Open the full portfolio site">
+          <span class="mag-page mag-page-b" aria-hidden="true"></span>
+          <span class="mag-page mag-page-a" aria-hidden="true"></span>
+          <span class="mag-cover">
+            <span class="mag-word">MONARCH<span>®</span></span>
+            <span class="mag-sub mono">THE FULL PORTFOLIO — 2026 EDITION</span>
+            <span class="mag-foot mono">HERO · HALL · NUMBERS · LETTER · CONTACT</span>
+          </span>
+        </a>
+      </div>
+      <p class="hint mono">OPEN THE FULL SITE ↗ — EVERYTHING, ONE PAGE</p>
+    </div>
+  </section>
+
+  <!-- 05 · RENDER LAB -->
+  <section class="scene" id="s-render" aria-label="3D rendering — a flight down a machine tunnel, light to dark">
+    <div class="pin">
+      <div class="bg bg-fallback" style="background-image:url('assets/poster-cg-tunnel-rev.jpg?v=1')" role="img" aria-label="A bright industrial hall with two symmetrical rows of white robotic arms"></div>
+      <video class="vid" src="media/cg-tunnel-rev.mp4?v=1" autoplay muted loop playsinline preload="metadata" poster="assets/poster-cg-tunnel-rev.jpg?v=1" aria-hidden="true"></video>
+      <div class="tint tint-green" aria-hidden="true"></div>
+      <div class="shade" data-shade="0.5" aria-hidden="true"></div>
+      <div class="copy">
+        <p class="kick kick-green">05 — 3D RENDERING</p>
         <h1 class="title title-green">FRAMES<br><em>BREATHE</em></h1>
         <p class="sub">MONARCH OS · The Vision — original CG motion studies,<br>built frame by frame.</p>
       </div>
@@ -142,14 +166,15 @@
     </div>
   </section>
 
-  <!-- 05 · BUILD FORGE -->
+  <!-- 06 · BUILD FORGE -->
   <section class="scene" id="s-forge" aria-label="Web development — a flight down a blue corridor with a services terminal">
     <div class="pin">
       <div class="bg bg-fallback" style="background-image:url('assets/plate-flight.jpg?v=1')" role="img" aria-label="A narrow dark blue industrial street with a glowing light in the center distance"></div>
       <video class="vid" src="media/cg-corridor.mp4?v=1" autoplay muted loop playsinline preload="metadata" poster="assets/poster-cg-corridor.jpg?v=1" aria-hidden="true"></video>
-      <div class="tint tint-green" aria-hidden="true"></div>
+      <div class="tint tint-cold" aria-hidden="true"></div>
+      <div class="pulse" aria-hidden="true"></div>
       <div class="copy">
-        <p class="kick kick-green">04 — WEB DEVELOPMENT</p>
+        <p class="kick kick-green">06 — WEB DEVELOPMENT</p>
         <h1 class="title title-green">SITES<br><em>A PULSE</em></h1>
       </div>
       <div class="term" aria-label="Services, terminal view">
@@ -169,28 +194,6 @@ python · javascript · ffmpeg · git · three.js</code></pre>
     </div>
   </section>
 
-  <!-- 06 · CATALOGUE -->
-  <section class="scene scene-light" id="s-catalog">
-    <div class="pin">
-      <div class="copy">
-        <p class="kick kick-ink">05 — THE SITE</p>
-        <h1 class="title title-ink">CATALOGUE</h1>
-      </div>
-      <div class="mag-wrap">
-        <a class="mag" href="home.html" aria-label="Open the full portfolio site">
-          <span class="mag-page mag-page-b" aria-hidden="true"></span>
-          <span class="mag-page mag-page-a" aria-hidden="true"></span>
-          <span class="mag-cover">
-            <span class="mag-word">MONARCH<span>®</span></span>
-            <span class="mag-sub mono">THE FULL PORTFOLIO — 2026 EDITION</span>
-            <span class="mag-foot mono">HERO · HALL · NUMBERS · LETTER · CONTACT</span>
-          </span>
-        </a>
-      </div>
-      <p class="hint mono">OPEN THE FULL SITE ↗ — EVERYTHING, ONE PAGE</p>
-    </div>
-  </section>
-
   <!-- 07 · THE MESSY MIDDLE -->
   <section class="scene" id="s-about" aria-label="About — the messy middle">
     <div class="pin">
@@ -198,7 +201,7 @@ python · javascript · ffmpeg · git · three.js</code></pre>
       <video class="vid" src="media/cg-study.mp4?v=1" autoplay muted loop playsinline preload="metadata" poster="assets/poster-cg-study.jpg?v=1" aria-hidden="true"></video>
       <div class="tint tint-warm" aria-hidden="true"></div>
       <div class="copy">
-        <p class="kick kick-warm">06 — ABOUT</p>
+        <p class="kick kick-warm">07 — ABOUT</p>
         <h1 class="title title-warm">THE MESSY<br><em>MIDDLE</em></h1>
       </div>
       <div class="about">
@@ -222,7 +225,7 @@ python · javascript · ffmpeg · git · three.js</code></pre>
       <video class="vid" src="media/cg-alley.mp4?v=1" autoplay muted loop playsinline preload="metadata" poster="assets/poster-cg-alley.jpg?v=1" aria-hidden="true"></video>
       <div class="tint tint-red" aria-hidden="true"></div>
       <div class="finale">
-        <p class="fin-kick mono">07 — THE LAST ROOM</p>
+        <p class="fin-kick mono">08 — THE LAST ROOM</p>
         <h2 class="fin-title">LET'S TALK ABOUT<br><em>YOUR NEXT PROJECT</em></h2>
         <p class="fin-sub">Have an idea? Bring it. A film, a render, a site that needs a pulse — I'll show up with a plan.</p>
         <div class="fin-links mono">
@@ -244,6 +247,6 @@ python · javascript · ffmpeg · git · three.js</code></pre>
 </div>
 
 <script src="assets/three.min.js?v=1"></script>
-<script src="assets/scroll.js?v=1"></script>
+<script src="assets/scroll.js?v=2"></script>
 </body>
 </html>

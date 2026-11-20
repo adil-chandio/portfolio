@@ -97,6 +97,22 @@ body.no-gl .bg-fallback,body.no-vid .bg-fallback{display:block}
 .tint-warm{background:radial-gradient(70% 80% at 50% 46%, rgba(255,170,80,.22), transparent 68%)}
 .tint-red{background:radial-gradient(60% 70% at 50% 46%, rgba(255,45,30,.3), transparent 66%)}
 
+/* hero grid — the reference's graph-paper void */
+.grid{position:absolute;inset:-14%;z-index:2;pointer-events:none;mix-blend-mode:screen;
+  background-image:linear-gradient(rgba(238,240,255,.15) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(238,240,255,.15) 1px, transparent 1px);
+  background-size:68px 68px;
+  -webkit-mask-image:radial-gradient(72% 72% at 50% 48%, #000 26%, transparent 76%);
+  mask-image:radial-gradient(72% 72% at 50% 48%, #000 26%, transparent 76%);
+  will-change:transform,opacity}
+/* tunnel day→night — the hall lights out as we fly in */
+.shade{position:absolute;inset:0;z-index:3;pointer-events:none;background:#01030a;opacity:0;will-change:opacity}
+/* forge tail — the red machine wakes up before the alley */
+.pulse{position:absolute;z-index:3;left:50%;top:50%;width:52vmin;height:52vmin;
+  transform:translate(-50%,-50%) scale(.5);border-radius:50%;pointer-events:none;opacity:0;
+  background:radial-gradient(50% 50% at 50% 50%, rgba(255,42,26,.62), rgba(255,42,26,.2) 46%, transparent 70%);
+  will-change:transform,opacity}
+
 /* ══ copy system ══ */
 .copy{position:absolute;z-index:5;left:clamp(20px,5vw,84px);top:14%}
 .kick{font:400 10px/1 'IBM Plex Mono',monospace;letter-spacing:.5em;color:#ff5a3d;margin-bottom:18px;
@@ -141,8 +157,8 @@ body.no-gl .bg-fallback,body.no-vid .bg-fallback{display:block}
 
 /* ══ 02 · covers (white) ══ */
 .covers{position:absolute;z-index:5;left:0;right:0;top:44%;display:flex;justify-content:center;
-  gap:2.6vw;padding:0 clamp(12px,4vw,60px);perspective:1300px}
-.cover{flex:0 0 auto;width:clamp(118px,17.5vw,268px);cursor:pointer;transform-style:preserve-3d;
+  gap:2.2vw;padding:0 clamp(12px,4vw,60px);perspective:1300px;will-change:transform}
+.cover{flex:0 0 auto;width:clamp(128px,19.5vw,300px);cursor:pointer;transform-style:preserve-3d;
   will-change:transform;transition:filter .35s}
 .cover img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;border-radius:3px;
   border:1px solid rgba(20,19,18,.22);background:#111;box-shadow:0 34px 64px rgba(24,20,12,.35)}

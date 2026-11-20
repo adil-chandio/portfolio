@@ -16,13 +16,16 @@
   function easeIO(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
 
   /* ── scene registry ─────────────────────────────────────── */
+  /* order = the reference reel: hero → white work → dark room →
+     white catalogue → tunnel (light→dark) → blue corridor →
+     the messy middle → red alley */
   var SCENES = [
     { id: 's-hero',    light: 0, dip: '#050506', dust: 0xcfd4e0, dop: 0.5 },
     { id: 's-work',    light: 1, dip: '#f2f0ea', dust: 0x000000, dop: 0 },
     { id: 's-room',    light: 0, dip: '#050506', dust: 0xdde6ff, dop: 0.32 },
+    { id: 's-catalog', light: 1, dip: '#f2f0ea', dust: 0x000000, dop: 0 },
     { id: 's-render',  light: 0, dip: '#050506', dust: 0x9fe8b8, dop: 0.5 },
     { id: 's-forge',   light: 0, dip: '#050506', dust: 0xbfd9ff, dop: 0.42 },
-    { id: 's-catalog', light: 1, dip: '#f2f0ea', dust: 0x000000, dop: 0 },
     { id: 's-about',   light: 0, dip: '#050506', dust: 0xffc36b, dop: 0.5 },
     { id: 's-finale',  light: 0, dip: '#170404', dust: 0xffb08a, dop: 0.55 }
   ];
@@ -35,6 +38,10 @@
       pin: el ? el.querySelector('.pin') : null,
       bg: el ? el.querySelector('.bg') : null,
       vid: el ? el.querySelector('.vid') : null,
+      grid: el ? el.querySelector('.grid') : null,
+      shade: el ? el.querySelector('.shade') : null,
+      pulse: el ? el.querySelector('.pulse') : null,
+      coversBox: el ? el.querySelector('.covers') : null,
       fades: el ? Array.prototype.slice.call(el.querySelectorAll('.copy,.spec,.hint,.meta,.term,.mag-wrap,.about,.finale')) : [],
       top: 0, h: 0, p: 0
     };
@@ -133,13 +140,27 @@
       if (s.pin) s.pin.style.transform = 'scale(' + (1.05 - 0.05 * easeIO(smooth(0, 0.28, s.p))).toFixed(4) + ')';
 
       /* plate parallax (fallback plates) */
-      if (s.bg) {
+      if (s.bg || s.grid) {
         var pv = par[i];
         pv.s += ((1.22 - smooth(0.05, 0.85, vis) * 0.16) - pv.s) * (reduced ? 1 : 0.085);
         pv.x += (((centerOffset / vh) * 3.0 - mx * 1.0) - pv.x) * (reduced ? 1 : 0.075);
         pv.y += ((-my * 0.9) - pv.y) * (reduced ? 1 : 0.075);
-        s.bg.style.transform = 'scale(' + pv.s.toFixed(4) + ') translate3d(' + pv.x.toFixed(2) + '%,' + pv.y.toFixed(2) + '%,0)';
+        if (s.bg) s.bg.style.transform = 'scale(' + pv.s.toFixed(4) + ') translate3d(' + pv.x.toFixed(2) + '%,' + pv.y.toFixed(2) + '%,0)';
+        if (s.grid) {
+          s.grid.style.transform = 'scale(' + (pv.s * 1.04).toFixed(4) + ') translate3d(' + (pv.x * 1.5).toFixed(2) + '%,' + (pv.y * 1.5).toFixed(2) + '%,0)';
+          s.grid.style.opacity = (clamp01(1 - s.p * 2.3) * (0.3 + 0.7 * vis)).toFixed(3);
+        }
       }
+      /* tunnel: the hall lights out as the flight goes in */
+      if (s.shade) s.shade.style.opacity = (smooth(0.12, 0.72, s.p) * (parseFloat(s.shade.dataset.shade || '0.5'))).toFixed(3);
+      /* forge tail: a red core wakes before the alley */
+      if (s.pulse) {
+        var po = smooth(0.52, 0.94, s.p);
+        s.pulse.style.opacity = (po * 0.92).toFixed(3);
+        s.pulse.style.transform = 'translate(-50%,-50%) scale(' + (0.5 + po * 0.8).toFixed(3) + ')';
+      }
+      /* white gallery: the whole rack drifts as we fly past it */
+      if (s.coversBox && !reduced) s.coversBox.style.transform = 'translateX(' + ((s.p - 0.5) * -7).toFixed(2) + 'vw)';
 
       /* copy: rise + fade in as the room focuses */
       var fade = smooth(0.08, 0.34, vis) * (1 - smooth(0.88, 1.0, vis) * 0.4);
@@ -158,7 +179,7 @@
         for (var k = 0; k < covers.length; k++) {
           var off = k - (covers.length - 1) / 2;
           covers[k].style.opacity = smooth(0.1, 0.5, vis).toFixed(3);
-          covers[k].style.transform = 'translateY(' + (-smooth(0.15, 0.8, vis) * 20 + (k % 2 ? 10 : 0)).toFixed(1) + 'px) rotateY(' + (off * 9 * fan).toFixed(2) + 'deg) rotateX(6deg)';
+          covers[k].style.transform = 'translateY(' + (-smooth(0.15, 0.8, vis) * 24 + (k % 2 ? 12 : 0)).toFixed(1) + 'px) rotateY(' + (off * 11 * fan).toFixed(2) + 'deg) rotateX(7deg)';
         }
       }
       if (vis > bestVis) { bestVis = vis; bestIdx = i; }
